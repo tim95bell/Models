@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1">
+  <asset>
+    <contributor>
+      <author>Macca</author>
+      <authoring_tool>OpenCOLLADA for 3ds Max;  Version: 1.3.1;  Revision: 847M;  Platform: Win32;  Configuration: Release_Max2010_static</authoring_tool>
+      <source_data>file:///C:/Users/Macca/Documents/3dsMax/scenes/ITC320A2.max</source_data>
+    </contributor>
+    <created>2012-05-17T08:44:54</created>
+    <modified>2012-05-17T08:44:54</modified>
+    <unit name="inch" meter="0.0254"/>
+    <up_axis>Z_UP</up_axis>
+  </asset>
+  <library_images>
+    <image id="Map #1-image" name="Map #1">
+      <init_from>AnimatedRectangle.tga</init_from>
+    </image>
+  </library_images>
+  <library_geometries>
+    <geometry id="geom-Box01" name="Box01">
+      <mesh>
+        <source id="geom-Box01-positions">
+          <float_array id="geom-Box01-positions-array" count="48">-5 -5 0 5 -5 0 -5 5 0 5 5 0 -5 -5 30 5 -5 30 -5 5 30 5 5 30 -5 -5 10 5 -5 10 5 5 10 -5 5 10 -5 -5 20 5 -5 20 5 5 20 -5 5 20</float_array>
+          <technique_common>
+            <accessor source="#geom-Box01-positions-array" count="16" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="geom-Box01-normals">
+          <float_array id="geom-Box01-normals-array" count="120">0 0 -1 0 0 -1 0 0 -1 0 0 -1 0 0 1 0 0 1 0 0 1 0 0 1 0 -1 0 0 -1 0 0 -1 0 0 -1 0 0 -1 0 0 -1 0 0 -1 0 0 -1 0 1 0 0 1 0 0 1 0 0 1 0 0 1 0 0 1 0 0 1 0 0 1 0 0 0 1 0 0 1 0 0 1 0 0 1 0 0 1 0 0 1 0 0 1 0 0 1 0 -1 0 0 -1 0 0 -1 0 0 -1 0 0 -1 0 0 -1 0 0 -1 0 0 -1 0 0</float_array>
+          <technique_common>
+            <accessor source="#geom-Box01-normals-array" count="40" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="geom-Box01-map1">
+          <float_array id="geom-Box01-map1-array" count="120">0.8042742 0.003946524 0 0.5585056 0.003946524 0 0.8042742 0.2481243 0 0.5585056 0.2481243 0 0.3089358 0.003389819 0 0.5498854 0.003389819 0 0.3089358 0.2483286 0 0.5498854 0.2483286 0 0.2618548 0.2530814 0 0.5028044 0.2530814 0 0.2618548 0.499653 0 0.5028044 0.499653 0 0.2618548 0.7462248 0 0.5028044 0.7462248 0 0.2618548 0.9927964 0 0.5028044 0.9927964 0 0.01737274 0.2530814 0 0.2583223 0.2530814 0 0.01737274 0.499653 0 0.2583223 0.499653 0 0.01737274 0.7462248 0 0.2583223 0.7462248 0 0.01737274 0.9927964 0 0.2583223 0.9927964 0 0.754441 0.2530814 0 0.9953905 0.2530814 0 0.754441 0.499653 0 0.9953905 0.499653 0 0.754441 0.7462248 0 0.9953905 0.7462248 0 0.754441 0.9927964 0 0.9953905 0.9927964 0 0.5084265 0.2530814 0 0.7493761 0.2530814 0 0.5084265 0.499653 0 0.7493761 0.499653 0 0.5084265 0.7462248 0 0.7493761 0.7462248 0 0.5084265 0.9927964 0 0.7493761 0.9927964 0</float_array>
+          <technique_common>
+            <accessor source="#geom-Box01-map1-array" count="40" stride="3">
+              <param name="S" type="float"/>
+              <param name="T" type="float"/>
+              <param name="P" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <vertices id="geom-Box01-vertices">
+          <input semantic="POSITION" source="#geom-Box01-positions"/>
+        </vertices>
+        <triangles material="ColorMaterial" count="28">
+          <input semantic="POSITION" source="#geom-Box01-positions" offset="0"/>
+          <input semantic="NORMAL" source="#geom-Box01-normals" offset="1"/>
+          <input semantic="TEXCOORD" source="#geom-Box01-map1" offset="2" set="0"/>
+          <p>0 0 0 2 1 2 3 2 3 3 2 3 1 3 1 0 0 0 4 4 4 5 5 5 7 6 7 7 6 7 6 7 6 4 4 4 0 8 8 1 9 9 9 10 11 9 10 11 8 11 10 0 8 8 8 11 10 9 10 11 13 12 13 13 12 13 12 13 12 8 11 10 12 13 12 13 12 13 5 14 15 5 14 15 4 15 14 12 13 12 1 16 16 3 17 17 10 18 19 10 18 19 9 19 18 1 16 16 9 19 18 10 18 19 14 20 21 14 20 21 13 21 20 9 19 18 13 21 20 14 20 21 7 22 23 7 22 23 5 23 22 13 21 20 3 24 24 2 25 25 11 26 27 11 26 27 10 27 26 3 24 24 10 27 26 11 26 27 15 28 29 15 28 29 14 29 28 10 27 26 14 29 28 15 28 29 6 30 31 6 30 31 7 31 30 14 29 28 2 32 32 0 33 33 8 34 35 8 34 35 11 35 34 2 32 32 11 35 34 8 34 35 12 36 37 12 36 37 15 37 36 11 35 34 15 37 36 12 36 37 4 38 39 4 38 39 6 39 38 15 37 36</p>
+        </triangles>
+      </mesh>
+    </geometry>
+  </library_geometries>
+  <library_controllers>
+    <controller id="geom-Box01-skin1">
+      <skin source="#geom-Box01">
+        <bind_shape_matrix>1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1</bind_shape_matrix>
+        <source id="geom-Box01-skin1-joints">
+          <Name_array id="geom-Box01-skin1-joints-array" count="3">joint0 joint1 joint2</Name_array>
+          <technique_common>
+            <accessor source="#geom-Box01-skin1-joints-array" count="3" stride="1">
+              <param name="JOINT" type="name"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="geom-Box01-skin1-bind_poses">
+          <float_array id="geom-Box01-skin1-bind_poses-array" count="48">0.01780066 2.75876e-8 0.9998416 8.31284e-16 -0.4295437 -1.87109e-8 0.007647372 -5.63807e-16 2.02654e-8 -0.460188 1.23367e-8 -1.38666e-8 0 0 0 1 0.0188911 0.006157091 0.9997314 -9.85632 -0.00862493 -0.4627569 0.01386699 -0.1385458 0.4266005 -0.009399226 -0.009847444 0.1849797 0 0 0 1 -0.001302138 0.001299323 0.4100674 -8.112915 -0.4130621 -0.001196821 -0.007921092 0.1563519 0.001001412 -0.4605871 0.007280847 -0.1451068 0 0 0 1</float_array>
+          <technique_common>
+            <accessor source="#geom-Box01-skin1-bind_poses-array" count="3" stride="16">
+              <param name="TRANSFORM" type="float4x4"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="geom-Box01-skin1-weights">
+          <float_array id="geom-Box01-skin1-weights-array" count="17">1 0.5341695 0.4658305 0.6117303 0.3882697 0.6117311 0.3882689 0.53417 0.4658299 0.5382813 0.4617188 0.5447243 0.4552757 0.6052803 0.3947197 0.5992535 0.4007465</float_array>
+          <technique_common>
+            <accessor source="#geom-Box01-skin1-weights-array" count="17" stride="1">
+              <param name="WEIGHT" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <joints>
+          <input semantic="JOINT" source="#geom-Box01-skin1-joints"/>
+          <input semantic="INV_BIND_MATRIX" source="#geom-Box01-skin1-bind_poses"/>
+        </joints>
+        <vertex_weights count="16">
+          <input semantic="JOINT" source="#geom-Box01-skin1-joints" offset="0"/>
+          <input semantic="WEIGHT" source="#geom-Box01-skin1-weights" offset="1"/>
+          <vcount>1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2</vcount>
+          <v>0 0 0 0 0 0 0 0 2 0 2 0 2 0 2 0 0 1 1 2 0 3 1 4 0 5 1 6 0 7 1 8 1 9 2 10 1 11 2 12 1 13 2 14 1 15 2 16</v>
+        </vertex_weights>
+      </skin>
+    </controller>
+  </library_controllers>
+  <library_lights>
+    <light id="EnvironmentAmbientLight" name="EnvironmentAmbientLight">
+      <technique_common>
+        <ambient>
+          <color>0 0 0</color>
+        </ambient>
+      </technique_common>
+    </light>
+  </library_lights>
+  <library_visual_scenes>
+    <visual_scene id="MaxScene">
+      <node name="EnvironmentAmbientLight">
+        <instance_light url="#EnvironmentAmbientLight"/>
+      </node>
+      <node id="node-Box01" name="Box01">
+        <instance_controller url="#geom-Box01-skin1">
+          <skeleton>#node-Bone01</skeleton>
+          <bind_material>
+            <technique_common>
+              <instance_material symbol="ColorMaterial" target="#ColorEffectR6G134B58-material"/>
+            </technique_common>
+          </bind_material>
+        </instance_controller>
+      </node>
+      <node id="node-Bone01" name="Bone01" sid="joint0" type="JOINT">
+        <matrix>0.01780066 -2.327314 9.56941e-8 0 2.75876e-8 -1.01378e-7 -2.173025 -3.01325e-8 0.9998416 0.0414343 5.82544e-8 0 0 0 0 1</matrix>
+        <node id="node-Bone02" name="Bone02" sid="joint1" type="JOINT">
+          <matrix>0.9999027 0.01335023 -0.002281893 9.857633 -0.002546506 0.02040699 -1.006374 0.1638869 -0.01358152 0.9938478 0.02069491 1.44058e-6 0 0 0 1</matrix>
+          <node id="node-Bone03" name="Bone03" sid="joint2" type="JOINT">
+            <matrix sid="matrix">2.437049 -0.05343225 -0.006354124 9.922683 0.01642711 0.02326443 1.004697 0.1368769 -0.04436785 -1.03258 0.02296502 -0.01019466 0 0 0 1</matrix>
+          </node>
+        </node>
+      </node>
+    </visual_scene>
+  </library_visual_scenes>
+  <library_animations>
+    <animation id ="TopBoneRY">
+      <source id="node-Bone03_matrix-input">
+        <float_array id="node-Bone03_matrix-input-array" count="21">0 0.03333333 0.06666667 0.1 0.1333333 0.1666667 0.2 0.2333333 0.2666667 0.3 0.3333333 0.3666667 0.4 0.4333333 0.4666667 0.5 0.5333333 0.5666667 0.6 0.6333333 0.6666667</float_array>
+        <technique_common>
+          <accessor source="#node-Bone03_matrix-input-array" count="21" stride="1">
+            <param name="TIME" type="float"/>
+          </accessor>
+        </technique_common>
+      </source>
+      <source id="node-Bone03_matrix-output">
+        <float_array id="node-Bone03_matrix-output-array" count="336">2.437049 -0.05343222 -0.006354093 9.922683 0.01642709 0.0232644 1.004697 0.1368769 -0.04436784 -1.03258 0.02296501 -0.01019465 0 0 0 1 2.436524 -0.06050562 -0.006327807 9.922683 0.01692491 0.02317273 1.004698 0.1368769 -0.06919091 -1.032058 0.02292937 -0.01019465 0 0 0 1 2.43395 -0.08382803 -0.0062595 9.922683 0.01817142 0.02288246 1.004701 0.1368769 -0.1323826 -1.030313 0.02282291 -0.01019465 0 0 0 1 2.427246 -0.1192511 -0.006167709 9.922683 0.01995265 0.02240467 1.004705 0.1368769 -0.2241932 -1.026721 0.02264064 -0.01019465 0 0 0 1 2.414508 -0.1625775 -0.006071746 9.922683 0.0220474 0.02175247 1.004712 0.1368769 -0.334724 -1.020679 0.02237927 -0.01019465 0 0 0 1 2.394959 -0.2095972 -0.005988776 9.922683 0.02423763 0.02095687 1.00472 0.1368769 -0.4540002 -1.012009 0.02204626 -0.01019465 0 0 0 1 2.369515 -0.2561641 -0.005930483 9.922683 0.02632331 0.02007567 1.004728 0.1368769 -0.572162 -1.001188 0.02166402 -0.01019465 0 0 0 1 2.340936 -0.2982832 -0.005900621 9.922683 0.02813744 0.01919478 1.004737 0.1368769 -0.6796996 -0.9894233 0.02127075 -0.01019465 0 0 0 1 2.313598 -0.3321654 -0.005894303 9.922683 0.02955347 0.01842355 1.004744 0.1368769 -0.7676127 -0.9785468 0.02091759 -0.01019465 0 0 0 1 2.292899 -0.3542035 -0.005899906 9.922683 0.03047966 0.01788479 1.00475 0.1368769 -0.8273842 -0.970775 0.02066338 -0.01019465 0 0 0 1 2.28435 -0.3608454 -0.005904018 9.922683 0.03083658 0.01770073 1.004751 0.1368769 -0.8506999 -0.9683216 0.02056682 -0.01019465 0 0 0 1 2.292253 -0.3517218 -0.005899488 9.922683 0.03051429 0.01792067 1.004749 0.1368769 -0.8291804 -0.9716687 0.0206663 -0.01019465 0 0 0 1 2.312681 -0.3268035 -0.00589323 9.922683 0.02961164 0.01850223 1.004744 0.1368769 -0.7704061 -0.9803196 0.02092784 -0.01019465 0 0 0 1 2.340035 -0.2896979 -0.00589931 9.922683 0.0282104 0.01931804 1.004736 0.1368769 -0.6828876 -0.9919029 0.02129095 -0.01019465 0 0 0 1 2.368796 -0.2440947 -0.005930244 9.922683 0.02640426 0.02023983 1.004727 0.1368769 -0.5753285 -1.00408 0.02169454 -0.01019465 0 0 0 1 2.394478 -0.1938918 -0.005991041 9.922683 0.02432227 0.02115476 1.004719 0.1368769 -0.4569231 -1.014952 0.02208596 -0.01019465 0 0 0 1 2.414244 -0.1432094 -0.006077826 9.922683 0.02213537 0.0219748 1.004711 0.1368769 -0.3373891 -1.023317 0.02242583 -0.01019465 0 0 0 1 2.427149 -0.0963211 -0.006178319 9.922683 0.0200479 0.02264249 1.004704 0.1368769 -0.2268053 -1.028775 0.02269113 -0.01019465 0 0 0 1 2.433975 -0.05755174 -0.006274461 9.922683 0.01828265 0.0231297 1.004699 0.1368769 -0.1353709 -1.03166 0.02287524 -0.01019465 0 0 0 1 2.436646 -0.03119415 -0.006345987 9.922683 0.01706528 0.02342742 1.004696 0.1368769 -0.0732091 -1.032786 0.02298194 -0.01019465 0 0 0 1 2.43723 -0.0214774 -0.006373524 9.922683 0.01661336 0.02353048 1.004695 0.1368769 -0.05029326 -1.033032 0.02301758 -0.01019465 0 0 0 1</float_array>
+        <technique_common>
+          <accessor source="#node-Bone03_matrix-output-array" count="21" stride="16">
+            <param name="TRANSFORM" type="float4x4"/>
+          </accessor>
+        </technique_common>
+      </source>
+      <source id="node-Bone03_matrix-interpolation">
+        <Name_array id="node-Bone03_matrix-interpolation-array" count="21">LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR</Name_array>
+        <technique_common>
+          <accessor source="#node-Bone03_matrix-interpolation-array" count="21" stride="1">
+            <param name="INTERPOLATION" type="name"/>
+          </accessor>
+        </technique_common>
+      </source>
+      <sampler id="node-Bone03_matrix-sampler">
+        <input semantic="INPUT" source="#node-Bone03_matrix-input"/>
+        <input semantic="OUTPUT" source="#node-Bone03_matrix-output"/>
+        <input semantic="INTERPOLATION" source="#node-Bone03_matrix-interpolation"/>
+      </sampler>
+      <channel source="#node-Bone03_matrix-sampler" target="node-Bone03/matrix"/>
+    </animation>
+ </library_animations>
+  <library_animations>
+    <animation id ="TopBoneRZ">
+      <source id="node-Bone03_matrix-input">
+        <float_array id="node-Bone03_matrix-input-array" count="21">0 0.03333333 0.06666667 0.1 0.1333333 0.1666667 0.2 0.2333333 0.2666667 0.3 0.3333333 0.3666667 0.4 0.4333333 0.4666667 0.5 0.5333333 0.5666667 0.6 0.6333333 0.6666667</float_array>
+        <technique_common>
+          <accessor source="#node-Bone03_matrix-input-array" count="21" stride="1">
+            <param name="TIME" type="float"/>
+          </accessor>
+        </technique_common>
+      </source>
+      <source id="node-Bone03_matrix-output">
+        <float_array id="node-Bone03_matrix-output-array" count="336">2.437049 -0.05343222 -0.006354093 9.922683 0.01642709 0.0232644 1.004697 0.1368769 -0.04436784 -1.03258 0.02296501 -0.01019465 0 0 0 1 2.437091 -0.04997462 -0.007262349 9.922683 0.0166642 -0.02216589 1.004729 0.1368769 -0.04506874 -1.032644 -0.0212152 -0.01019465 0 0 0 1 2.437177 -0.04463142 -0.009345412 9.922683 0.01680868 -0.1450297 0.9950391 0.1368769 -0.04301095 -1.022776 -0.1406887 -0.01019465 0 0 0 1 2.43729 -0.03777945 -0.01140224 9.922683 0.01626384 -0.3218413 0.9550437 0.1368769 -0.03920775 -0.9817687 -0.3126415 -0.01019465 0 0 0 1 2.437411 -0.03015494 -0.01235657 9.922683 0.0145626 -0.5226951 0.8670434 0.1368769 -0.03443241 -0.8913871 -0.5080022 -0.01019465 0 0 0 1 2.43753 -0.02280384 -0.01171511 9.922683 0.0114752 -0.71401 0.7266776 0.1368769 -0.029127 -0.7471287 -0.6941078 -0.01019465 0 0 0 1 2.437634 -0.01668262 -0.009734094 9.922683 0.00713104 -0.8669284 0.5472143 0.1368769 -0.02352178 -0.5626349 -0.842879 -0.01019465 0 0 0 1 2.437712 -0.01222229 -0.007186174 9.922683 0.002027809 -0.9664934 0.3560788 0.1368769 -0.01787257 -0.3661166 -0.9397549 -0.01019465 0 0 0 1 2.437758 -0.009186208 -0.0048967 9.922683 -0.003112673 -1.015643 0.1861017 0.1368769 -0.01267367 -0.1913433 -0.9875855 -0.01019465 0 0 0 1 2.437775 -0.006894409 -0.003387808 9.922683 -0.00756365 -1.031198 0.06715548 0.1368769 -0.008742809 -0.06903898 -1.002727 -0.01019465 0 0 0 1 2.437771 -0.004628539 -0.002860009 9.922683 -0.01075589 -1.033242 0.02300113 0.1368769 -0.007185637 -0.0236411 -1.004712 -0.01019465 0 0 0 1 2.437769 -0.004473507 -0.003387808 9.922683 -0.009979128 -1.031204 0.06715548 0.1368769 -0.008904576 -0.06904751 -1.002727 -0.01019465 0 0 0 1 2.437755 -0.004344463 -0.0048967 9.922683 -0.007870733 -1.015642 0.1861017 0.1368769 -0.01357024 -0.1913672 -0.9875855 -0.01019465 0 0 0 1 2.437715 -0.004959762 -0.007186174 9.922683 -0.004763662 -0.9664724 0.3560788 0.1368769 -0.02044582 -0.3661642 -0.9397549 -0.01019465 0 0 0 1 2.437635 -0.006999433 -0.009734034 9.922683 -9.90935e-4 -0.8668764 0.5472143 0.1368769 -0.02879458 -0.5627129 -0.842879 -0.01019465 0 0 0 1 2.437509 -0.01070016 -0.01171511 9.922683 0.003114342 -0.7139225 0.7266776 0.1368769 -0.03787964 -0.7472413 -0.6941078 -0.01019465 0 0 0 1 2.437342 -0.01563084 -0.01235651 9.922683 0.007219135 -0.5225762 0.8670434 0.1368769 -0.0469641 -0.8915376 -0.5080022 -0.01019465 0 0 0 1 2.437153 -0.02083492 -0.01140224 9.922683 0.01099044 -0.3217012 0.9550437 0.1368769 -0.05531144 -0.9819589 -0.3126415 -0.01019465 0 0 0 1 2.436971 -0.02526646 -0.009345412 9.922683 0.01409572 -0.1448802 0.9950391 0.1368769 -0.06218522 -1.023006 -0.1406887 -0.01019465 0 0 0 1 2.436835 -0.02818912 -0.007262408 9.922683 0.0162025 -0.0220139 1.004729 0.1368769 -0.06684935 -1.032904 -0.0212152 -0.01019465 0 0 0 1 2.436782 -0.029226 -0.006354153 9.922683 0.01697862 0.02342355 1.004697 0.1368769 -0.06856763 -1.032844 0.02296501 -0.01019465 0 0 0 1</float_array>
+        <technique_common>
+          <accessor source="#node-Bone03_matrix-output-array" count="21" stride="16">
+            <param name="TRANSFORM" type="float4x4"/>
+          </accessor>
+        </technique_common>
+      </source>
+      <source id="node-Bone03_matrix-interpolation">
+        <Name_array id="node-Bone03_matrix-interpolation-array" count="21">LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR</Name_array>
+        <technique_common>
+          <accessor source="#node-Bone03_matrix-interpolation-array" count="21" stride="1">
+            <param name="INTERPOLATION" type="name"/>
+          </accessor>
+        </technique_common>
+      </source>
+      <sampler id="node-Bone03_matrix-sampler">
+        <input semantic="INPUT" source="#node-Bone03_matrix-input"/>
+        <input semantic="OUTPUT" source="#node-Bone03_matrix-output"/>
+        <input semantic="INTERPOLATION" source="#node-Bone03_matrix-interpolation"/>
+      </sampler>
+      <channel source="#node-Bone03_matrix-sampler" target="node-Bone03/matrix"/>
+    </animation>
+  </library_animations>
+  <scene>
+    <instance_visual_scene url="#MaxScene"/>
+  </scene>
+</COLLADA>
