@@ -1,31 +1,31 @@
-attribute vec4 aPosition; 
-attribute vec2 aTexture;
-attribute vec4 boneWeight;
-attribute vec4 boneIndex;
+attribute vec4 vPos; 
+attribute vec2 vTex;
+attribute vec4 bWeights;
+attribute vec4 bIndices;
 
 uniform mat4 modelMatrix;
 uniform mat4 worldMatrix;
 uniform mat4 viewProjectionMatrix;
 
 uniform mat4 boneMatrices[30];
-uniform mat4 boneMatricesNextFrame[30];
+uniform mat4 boneMatricesNF[30];
 uniform float lerpAmount;
 
-varying vec2 vTex;
+varying vec2 varyingTex;
 
 void main() 
 {
-	vTex=aTexture;
+	varyingTex = vTex;
 
     vec4 frameOnePosition = vec4(0,0,0,0);
     vec4 frameTwoPosition = vec4(0,0,0,0);
     for(int i = 0; i < 4; ++i){
         frameOnePosition += 
-            boneMatrices[ int(boneIndex[i]) ] *
-            boneWeight[i] * aPosition;
+            boneMatrices[ int(bIndices[i]) ] *
+            bWeights[i] * vPos;
         frameTwoPosition += 
-            boneMatricesNextFrame[ int(boneIndex[i]) ] *
-            boneWeight[i] * aPosition;
+            boneMatricesNF[ int(bIndices[i]) ] *
+            bWeights[i] * vPos;
     }
 
     vec4 finalPosition = mix(frameOnePosition, frameTwoPosition, lerpAmount);

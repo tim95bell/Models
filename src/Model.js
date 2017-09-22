@@ -8,16 +8,10 @@ function Model(dae, tga){
 	this.xRot = 270;
 	this.loc = vec3(0,0,0);
 	this.size = 1;
-
-
+	this.animationTrackIndex = 0;
 }
 
 Model.prototype.createModelMatrix = function(){
-	//Scale the model and center it based on its bounding sphere
-	// var scaleSize = 1.0/this.dae.radius;	
-	// console.log("radius: " + this.dae.radius);
-	// console.log("center: " + this.dae.center);
-
 	let minX = maxX = this.dae.vertexPositionDataRead[0];
 	let minY = maxY = this.dae.vertexPositionDataRead[1];
 	let minZ = maxZ = this.dae.vertexPositionDataRead[2];
@@ -45,13 +39,10 @@ Model.prototype.createModelMatrix = function(){
 			maxZ = z;
 		}
 	}
-	console.log("minX: " + minX + " | maxX: " + maxX +
-			"\nminY: " + minY + " | maxY: " + maxY +
-			"\nminZ: " + minZ + " | maxZ: " + maxZ);
-	var scaleSize;
-	var xSize = maxX - minX;
-	var ySize = maxY - minY;
-	var zSize = maxZ - minZ;
+	let scaleSize;
+	const xSize = maxX - minX;
+	const ySize = maxY - minY;
+	const zSize = maxZ - minZ;
 	// if(xSize > ySize && xSize > zSize){
 	// 	scaleSize = 1.0/(xSize);	
 	// } else if(ySize > xSize && ySize > zSize){
@@ -60,72 +51,40 @@ Model.prototype.createModelMatrix = function(){
 	// 	scaleSize = 1.0/(zSize);	
 	// }
 	scaleSize = 1.0/ySize;
-	let centerX = minX + xSize/2;
-	let centerY = minY + ySize/2;
-	let centerZ = minZ + zSize/2;
-	let s = scalem(scaleSize, scaleSize, scaleSize);
-	let t = translate( -centerX, -centerY, -centerZ );
-	let mat = mult(s, t);
-
-
-	let min = vec4(this.dae.vertexPositionDataRead[0], 
-		this.dae.vertexPositionDataRead[1], this.dae.vertexPositionDataRead[2], 0);
-	min = multiplyMat4Vec4(mat, min);
-	let max = vec4(this.dae.vertexPositionDataRead[0], 
-		this.dae.vertexPositionDataRead[1], this.dae.vertexPositionDataRead[2], 0);
-	max = multiplyMat4Vec4(mat, max);
-	for(var i = 1; i < this.dae.vertexPositionDataRead.length/3; ++i){
-		let cur = vec4(this.dae.vertexPositionDataRead[i*3],
-			this.dae.vertexPositionDataRead[i*3+1],
-			this.dae.vertexPositionDataRead[i*3+2], 0);
-		let curT = multiplyMat4Vec4(mat, cur);
-
-		if(curT[0] < min[0]){
-			min[0] = curT[0];
-		}
-		if( curT[0] > max[0]){
-			max[0] = curT[0];
-		}
-		if(curT[1] < min[1]){
-			min[1] = curT[1];
-		}
-		if( curT[1] > max[1]){
-			max[1] = curT[1];
-		}
-		if(curT[2] < min[2]){
-			min[2] = curT[2];
-		}
-		if( curT[2] > max[2]){
-			max[2] = curT[2];
-		}
-	}
-	console.log("minX: " + min[0] + " | maxX: " + max[0] +
-			"\nminY: " + min[1] + " | maxY: " + max[1] +
-			"\nminZ: " + min[2] + " | maxZ: " + max[2]);
+	const centerX = minX + xSize/2;
+	const centerY = minY + ySize/2;
+	const centerZ = minZ + zSize/2;
+	const s = scalem(scaleSize, scaleSize, scaleSize);
+	const t = translate( -centerX, -centerY, -centerZ );
+	const mat = mult(s, t);
 
 	return mat;
 }
 
 Model.prototype.sendWorldMatrix = function(gl, program){
-	let s = scalem(this.size, this.size, this.size);
-	let r = rotate(this.xRot, [1,0,0]);
-	let t = translate( this.loc[0], this.loc[1], this.loc[2] );
-	let mat = mult(t, mult(r, s));
+	const s = scalem(this.size, this.size, this.size);
+	const r = rotate(this.xRot, [1,0,0]);
+	const t = translate( this.loc[0], this.loc[1], this.loc[2] );
+	const mat = mult(t, mult(r, s));
 	gl.uniformMatrix4fv( gl.getUniformLocation(program, "worldMatrix"), gl.FALSE, flatten(mat));
 }
 
 // update skinning and draw matrix for every bone
 // do this on CPU in Javascript
 Model.prototype.updateSkeleton = function(){
-	var jointMatrix;
-	var jointMatrixNextFrame;
-	var IBM;
-	var SM;
-	var SMNextFrame;
-	var frameCount;
+	let jointMatrix;
+	let jointMatrixNextFrame;
+	let IBM;
+	let SM;
+	let SMNextFrame;
+	let frameCount;
 
 	for(var boneIdx = 0; boneIdx < this.dae.bones.length; ++boneIdx){
-		frameCount = this.dae.bones[boneIdx].animationTracks[1].keyFrameTransform.length;
+		let animationTrack = this.dae.bones[boneIdx].animationTracks[this.animationTrackIndex];
+		if(!animationTrack){
+			animationTrack = this.dae.bones[boneIdx].animationTracks[1];
+		}
+		frameCount = animationTrack.keyFrameTransform.length;
 		this.frameId += 0.0009;
 		if(this.frameId >= frameCount){
 			this.frameId = 0;
@@ -162,7 +121,7 @@ Model.prototype.updateSkeleton = function(){
 }
 
 Model.prototype.calJointMatrix4Bone = function(bone, trackIdx, frameIdx){
-	var jointMatrix;
+	let jointMatrix;
 
 	if(bone.animationTracks[trackIdx].keyFrameTransform.length == 0 || 
 		frameIdx >= bone.animationTracks[trackIdx].keyFrameTransform.length){
@@ -175,7 +134,7 @@ Model.prototype.calJointMatrix4Bone = function(bone, trackIdx, frameIdx){
 		return jointMatrix;
 	}
 	else {
-		var parentJointMatrix = this.calJointMatrix4Bone(bone.parent, trackIdx, frameIdx);
+		const parentJointMatrix = this.calJointMatrix4Bone(bone.parent, trackIdx, frameIdx);
 		jointMatrix = mult( parentJointMatrix, jointMatrix );
 		return jointMatrix;
 	}
@@ -185,15 +144,15 @@ Model.prototype.pushBoneMatrixArray = function(gl, program){
 	this.updateSkeleton();
 	
 	for(var i = 0; i < this.dae.bones.length; ++i){
-		var bMLoc = gl.getUniformLocation( program, "boneMatrices["+i+"]");
-		var bMNfLoc = gl.getUniformLocation( program, "boneMatricesNextFrame["+i+"]");
+		const bMLoc = gl.getUniformLocation( program, "boneMatrices["+i+"]");
+		const bMNfLoc = gl.getUniformLocation( program, "boneMatricesNF["+i+"]");
 		gl.uniformMatrix4fv(bMLoc, false, flatten(this.dae.bones[i].skinningMatrix));
 		gl.uniformMatrix4fv(bMNfLoc, false, flatten(this.dae.bones[i].skinningMatrixNextFrame));
 	}
 }
 
 Model.prototype.pushLerpAmount = function(gl, program){
-	let loc = gl.getUniformLocation(program, "lerpAmount");
+	const loc = gl.getUniformLocation(program, "lerpAmount");
 	gl.uniform1f(loc, this.dae.lerpAmount);	
 }
 
@@ -205,35 +164,31 @@ Model.prototype.render = function(gl, program, attributes){
 	gl.uniformMatrix4fv( gl.getUniformLocation(program, "modelMatrix"), gl.FALSE, flatten(this.modelMatrix));
 	this.sendWorldMatrix(gl, program);
 
-
 	gl.bindBuffer( gl.ARRAY_BUFFER, attributes.vertexPositions.id );
 	gl.bufferData( gl.ARRAY_BUFFER, flatten(this.dae.vertexPositionDataRead), gl.STATIC_DRAW );
-	var aPosition = gl.getAttribLocation( program, "aPosition" );
-	gl.enableVertexAttribArray( aPosition );
-	gl.vertexAttribPointer( aPosition, 3, gl.FLOAT, false, 0, 0 );
+	const vPos = gl.getAttribLocation( program, "vPos" );
+	gl.enableVertexAttribArray( vPos );
+	gl.vertexAttribPointer( vPos, 3, gl.FLOAT, false, 0, 0 );
 
 	gl.bindBuffer( gl.ARRAY_BUFFER, attributes.vertexTextures.id );
 	gl.bufferData( gl.ARRAY_BUFFER, flatten(this.dae.vertexTextureDataRead), gl.STATIC_DRAW );	
-	var aTexture = gl.getAttribLocation( program, "aTexture" );
-	gl.enableVertexAttribArray( aTexture );
-	gl.vertexAttribPointer( aTexture, 2, gl.FLOAT, false, 0, 0 );
+	const vTex = gl.getAttribLocation( program, "vTex" );
+	gl.enableVertexAttribArray( vTex );
+	gl.vertexAttribPointer( vTex, 2, gl.FLOAT, false, 0, 0 );
 
 	gl.bindBuffer( gl.ARRAY_BUFFER, attributes.boneIndices.id );
 	gl.bufferData( gl.ARRAY_BUFFER, flatten(this.dae.vertexBoneIndexDataRead), gl.STATIC_DRAW );	
-	var boneIndex = gl.getAttribLocation( program, "boneIndex" );
-	gl.enableVertexAttribArray( boneIndex );
-	gl.vertexAttribPointer( boneIndex, 4, gl.FLOAT, false, 0, 0 );
+	const bIndices = gl.getAttribLocation( program, "bIndices" );
+	gl.enableVertexAttribArray( bIndices );
+	gl.vertexAttribPointer( bIndices, 4, gl.FLOAT, false, 0, 0 );
 
 	gl.bindBuffer( gl.ARRAY_BUFFER, attributes.boneWeights.id );
 	gl.bufferData( gl.ARRAY_BUFFER, flatten(this.dae.vertexBoneWeightDataRead), gl.STATIC_DRAW );	
-	var boneWeight = gl.getAttribLocation( program, "boneWeight" );
-	gl.enableVertexAttribArray( boneWeight );
-	gl.vertexAttribPointer( boneWeight, 4, gl.FLOAT, false, 0, 0 );
+	const bWeights = gl.getAttribLocation( program, "bWeights" );
+	gl.enableVertexAttribArray( bWeights );
+	gl.vertexAttribPointer( bWeights, 4, gl.FLOAT, false, 0, 0 );
 
-	//Set the texture for the model
 	gl.bindTexture(gl.TEXTURE_2D, this.tex.texture);
-	// console.log(this.tex.texture);
-	
-	//Draw the entire model in one go. 
+
 	gl.drawArrays( gl.TRIANGLES, this.dae.subMeshIndex[0], this.dae.subMeshIndex[1]); //Draw a single triangle (3 points)
 }
