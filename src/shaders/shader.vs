@@ -12,6 +12,12 @@ uniform mat4 boneMatrices[30];
 uniform mat4 boneMatricesNF[30];
 uniform float lerpAmount;
 
+//uniform mat4 ntBoneMatrices[30];
+//uniform mat4 ntBoneMatricesNF[30];
+//uniform float ntLerpAmount;
+
+//uniform float lerpBetweenTracksAmount;
+
 varying vec2 varyingTex;
 
 void main() 
@@ -31,5 +37,21 @@ void main()
 
     vec4 finalPosition = mix(frameOnePosition, frameTwoPosition, lerpAmount);
 
-    gl_Position = projMat * viewMat * worldMatrix * modelMatrix * finalPosition; 
+    /*if(lerpBetweenTracksAmount > 0.0){
+        vec4 ltFrameOnePosition = vec4(0,0,0,0);
+        vec4 ltFrameTwoPosition = vec4(0,0,0,0);
+        for(int i = 0; i < 4; ++i){
+            ltFrameOnePosition += 
+                ltBoneMatrices[ int(bIndices[i]) ] *
+                bWeights[i] * vPos;
+            ltFrameTwoPosition += 
+                ltBoneMatricesNF[ int(bIndices[i]) ] *
+                bWeights[i] * vPos;
+        }
+
+        vec4 ltFinalPosition = mix(ltFrameOnePosition, ltFrameTwoPosition, ltLerpAmount);
+        finalPosition = mix(ltFinalPosition, finalPosition, lerpBetweenTracksAmount);
+    }*/
+
+    gl_Position = projMat * viewMat * worldMatrix * modelMatrix * finalPosition;
 }

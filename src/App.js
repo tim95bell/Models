@@ -1,14 +1,26 @@
 
 
 function App(){
-	this.state = {
-		playbackSpeed : 1.0,
-		trackAdd : 0,
-		paused : false,
-		picking : false,
-		lookAround : false,
+	this.playback = {
+		speed : 1.0,
+		paused : false
 	};
-	this.pickingObject = null;
+	this.tracks = {
+		inTransition : false,
+		time : null,
+		endTime : null
+	};
+	this.movement = {
+		lookAround : false,
+		left : false,
+		down : false,
+		right : false,
+		up : false
+	};
+	this.picking = {
+		enabled : false,
+		object : null	
+	};
 	this.oneView = {
 		eye : vec3(0, 0, 20),
 		camYaw : 180,
@@ -27,7 +39,6 @@ function App(){
 		camPitch : 0,
 		up : vec3(0, 1, 0)
 	};
-	this.left = this.down = this.right = this.up = false;
 
 	//--------------------- Set Up WebGL ---------------------//
 	this.canvas = document.getElementById( "gl-canvas" );
@@ -51,6 +62,7 @@ function App(){
 	const goblinDaePath = "assets/meshes/goblin.dae";
 	const catDaePath = "assets/meshes/cat.dae";
 	const rectangleDaePath = "assets/meshes/AnimatedRectanglev2.dae";
+
 	const goblinTgaPath = "assets/textures/goblintexture.tga";
 	const rectangleTgaPath = "Assets/textures/AnimatedRectangle.tga";
 
@@ -72,26 +84,25 @@ function App(){
 	const gap = 13;
 
 	for(var i = 0; i < 3; ++i){
-		this.goblins[i] = new Model(this.createDae(goblinDaePath), goblinTga);
+		let dae = new ColladaParser(goblinDaePath);
+		this.goblins[i] = new Model(dae, goblinTga, i);
 		this.goblins[i].size = size*goblinRatio;
 		this.goblins[i].loc = vec3( (i - 1)*gap, gap/3*2, -gap*4);
-		this.goblins[i].animationTrackIndex = i;
 	}
 	for(var i = 0; i < 3; ++i){
-		this.rects[i] = new Model(this.createDae(rectangleDaePath), rectangleTga);
+		let dae = new ColladaParser(rectangleDaePath);
+		this.rects[i] = new Model(dae, rectangleTga, i);
 		this.rects[i].size = size*rectRatio;
 		this.rects[i].loc = vec3( (i - 1)*gap, 0, -gap*3);
-		this.rects[i].animationTrackIndex =i;
 	}
 	for(var i = 0; i < 3; ++i){
-		// this.cats[i] = new Model(this.createDae(catDaePath), goblinTga);
-		this.cats[i] = new Model(this.createDae(catDaePath), rectangleTga);
+		let dae = new ColladaParser(catDaePath);
+		this.cats[i] = new Model(dae, rectangleTga, i);
 		this.cats[i].size = size*catRatio;
 		this.cats[i].loc = vec3( (i - 1)*gap, -gap/6*5, -gap*2);
 		this.cats[i].xRot = 180;
-		this.cats[i].animationTrackIndex = i;
 	}
-	
+
 
 	//--------------------- Load Shaders ---------------------//
     this.program = initShaders( this.gl, "src/shaders/shader.vs",
@@ -119,13 +130,6 @@ function App(){
 	this.gl.uniformMatrix4fv( this.gl.getUniformLocation(this.program, "projMat"), this.gl.FALSE, flatten(this.projMat) );
 };
 
-App.prototype.createDae = function(path){
-	let dae = new ColladaParser(path);
-
-	return dae;
-}
-
-
 App.prototype.updateViewMat = function(){
     let yawInRadians = (this.view.camYaw / 180.0 * 3.141592654); 
     let pitchInRadians = (this.view.camPitch / 180.0 * 3.141592654); 
@@ -143,7 +147,7 @@ App.prototype.updateViewMat = function(){
 App.prototype.enterLookAroundMode = function(){
 	this.canvas.requestPointerLock = this.canvas.requestPointerLock || this.canvas.mozRequestPointerLock;
 	this.canvas.requestPointerLock();
-	this.state.lookAround = true;
+	this.movement.lookAround = true;
 }
 
 App.prototype.move = function(){
@@ -154,21 +158,21 @@ App.prototype.move = function(){
     dir[1] = Math.sin(pitchInRadians); 
 	dir[2] = Math.cos(pitchInRadians) * Math.cos(-yawInRadians);
 
-	if(this.up && !this.down){
+	if(this.movement.up && !this.movement.down){
 		let add = normaliseVector(dir);
 		multiplyPoint(add, 0.001);
 		this.view.eye = addPoints(this.view.eye, add);
-	} else if(this.down && !this.up){
+	} else if(this.movement.down && !this.movement.up){
 		let add = normaliseVector(dir);
 		multiplyPoint(add, 0.001);
 		this.view.eye = subtractPoints(this.view.eye, add);
 	}
-	if(this.left && !this.right){
+	if(this.movement.left && !this.movement.right){
 		let add = cross(this.view.up, dir);
 		add = normaliseVector(add);
 		multiplyPoint(add, 0.001);
 		this.view.eye = addPoints(this.view.eye, add);
-	} else if(this.right && !this.left){
+	} else if(this.movement.right && !this.movement.left){
 		let add = cross(this.view.up, dir);
 		add = normaliseVector(add);
 		multiplyPoint(add, 0.001);
@@ -178,7 +182,7 @@ App.prototype.move = function(){
 
 App.prototype.update = function(){
 	this.updateViewMat()
-	if(!this.state.paused){
+	if(!this.playback.paused){
 		for(var i = 0; i < 3; ++i){
 			this.goblins[i].update();
 			this.cats[i].update();
@@ -212,8 +216,8 @@ App.prototype.keyDown = function(keyEvent){
 	switch(key){
 		case '-':
 		{
-			const newSpeed = this.state.playbackSpeed / 2.0;
-			this.state.playbackSpeed = newSpeed;
+			const newSpeed = this.playback.speed / 2.0;
+			this.playback.speed = newSpeed;
 			for(var i = 0; i < 3; ++i){
 				this.goblins[i].setPlaybackSpeed(newSpeed);
 				this.cats[i].setPlaybackSpeed(newSpeed);
@@ -222,8 +226,8 @@ App.prototype.keyDown = function(keyEvent){
 		} break;
 		case '+':
 		{
-			const newSpeed = this.state.playbackSpeed * 2.0;
-			this.state.playbackSpeed = newSpeed;
+			const newSpeed = this.playback.speed * 2.0;
+			this.playback.speed = newSpeed;
 			for(var i = 0; i < 3; ++i){
 				this.goblins[i].setPlaybackSpeed(newSpeed);
 				this.cats[i].setPlaybackSpeed(newSpeed);
@@ -232,28 +236,35 @@ App.prototype.keyDown = function(keyEvent){
 		} break;
 		case 'x':
 		{
+			this.tracks.inTransition = true;
+			this.tracks.time = Date.now();
+			this.tracks.endTime = this.tracks.time + 2000;
 			for(var i = 0; i < 3; ++i){
-				this.goblins[i].incrementAnimationTrackIndex();
-				this.cats[i].incrementAnimationTrackIndex();
-				this.rects[i].incrementAnimationTrackIndex();
+				// this.goblins[i].initiateTransitionForward(this.gl, this.program);
+				// this.cats[i].initiateTransitionForward(this.gl, this.program);
+				// this.rects[i].initiateTransitionForward(this.gl, this.program);
 			}
-
 		} break;
 		case 'z':
 		{
+			this.tracks.inTransition = true;
+			this.tracks.time = Date.now();
+			this.tracks.endTime = this.tracks.time + 2000;
 			for(var i = 0; i < 3; ++i){
-				this.goblins[i].decrementAnimationTrackIndex();
-				this.cats[i].decrementAnimationTrackIndex();
-				this.rects[i].decrementAnimationTrackIndex();
+				// this.goblins[i].initiateTransitionBackward(this.gl, this.program);
+				// this.cats[i].initiateTransitionBackward(this.gl, this.program);
+				// this.rects[i].initiateTransitionBackward(this.gl, this.program);
 			}
 		} break;
 		case 'p':
 		{
-			this.state.paused = !this.state.paused;
+			this.playback.paused = !this.playback.paused;
 		} break;
 		case 'c':
 		{
-			this.state.picking = !this.state.picking;
+			if(!this.movement.lookAround){
+				this.picking.enabled = !this.picking.enabled;
+			}
 		} break;
 		case '1':
 		{
@@ -271,19 +282,19 @@ App.prototype.keyDown = function(keyEvent){
 		} break;
 		case 'w':
 		{
-			this.up = true;
+			this.movement.up = true;
 		} break;
 		case 'a':
 		{
-			this.left = true;
+			this.movement.left = true;
 		} break;
 		case 's':
 		{
-			this.down = true;
+			this.movement.down = true;
 		} break;
 		case 'd':
 		{
-			this.right = true;
+			this.movement.right = true;
 		} break;
 	}
 }
@@ -293,31 +304,31 @@ App.prototype.keyUp = function(keyEvent){
 	switch(key){
 		case 'w':
 		{
-			this.up = false;
+			this.movement.up = false;
 		} break;
 		case 'a':
 		{
-			this.left = false;
+			this.movement.left = false;
 		} break;
 		case 's':
 		{
-			this.down = false;
+			this.movement.down = false;
 		} break;
 		case 'd':
 		{
-			this.right = false;
+			this.movement.right = false;
 		} break;
 	}
 }
 
 App.prototype.onClick = function(event){
-	if(!this.state.picking){
+	if(!this.picking.enabled){
 		this.enterLookAroundMode();
 	}
 }
 
 App.prototype.onMouseMove = function(e){
-	if(this.state.lookAround){
+	if(this.movement.lookAround){
 		let movementX = event.movementX || event.mozMovementX || 
 			event.webkitMovementX || 0;
 		let movementY = event.movementY || event.mozMovementY || 
@@ -330,16 +341,13 @@ App.prototype.onMouseMove = function(e){
 			this.view.camPitch = 89.99;
 		}
 	}
-	else if(this.state.picking){
+	else if(this.picking.enabled){
 
 	}
 }
 
-
-
-
 App.prototype.onMouseDown = function(event){
-	if(this.state.picking && !this.state.lookAround){
+	if(this.picking.enabled && !this.movement.lookAround){
 		let x = event.clientX;
 		let y = event.clientY;
 		let mat = mult(this.projMat, this.viewMat);
@@ -354,7 +362,7 @@ App.prototype.onMouseDown = function(event){
 				let c = goblin_i_boundingSphere.c;
 				let r = goblin_i_boundingSphere.r;
 				if(this.checkCollision(p1, p2, c, r)){
-					this.pickingObject = goblin_i;
+					this.picking.object = goblin_i;
 					break;
 				}
 			}
@@ -365,7 +373,7 @@ App.prototype.onMouseDown = function(event){
 				let c = cats_i_boundingSphere.c;
 				let r = cats_i_boundingSphere.r;
 				if(this.checkCollision(p1, p2, c, r)){
-					this.pickingObject = cats_i;
+					this.picking.object = cats_i;
 					break;
 				}
 			}
@@ -376,12 +384,12 @@ App.prototype.onMouseDown = function(event){
 				let c = rects_i_boundingSphere.c;
 				let r = rects_i_boundingSphere.r;
 				if(this.checkCollision(p1, p2, c, r)){
-					this.pickingObject = rects_i;
+					this.picking.object = rects_i;
 					break;
 				}
 			}
 		}
-		console.log("pickingObject: " + this.pickingObject);
+		console.log("pickingObject: " + this.picking.object);
 	}
 }
 App.prototype.checkCollision = function(p1, p2, c, r){
@@ -403,45 +411,6 @@ App.prototype.checkCollision = function(p1, p2, c, r){
 		return false;
 	}
 }
-// App.prototype.onMouseDown = function(event){
-// 	if(this.state.picking && !this.state.lookAround){
-// 		let worldRay;
-// 		{
-// 			let x = event.clientX;
-// 			let y = event.clientY;
-// 			// console.log("X | Y : " + x + " | " + y);
-// 			let normalisedDeviceCoords = vec2( (2.0*x)/this.canvas.width, -(2.0*y)/this.canvas.height );
-// 			// console.log("normalisedDeviceCoords: " + normalisedDeviceCoords);
-// 			let clipCoords = vec4(normalisedDeviceCoords[0], normalisedDeviceCoords[1], -1, 1);
-// 			// console.log("clipCoords: " + clipCoords);
-// 			let eyeCoords = toEyeCoords(clipCoords, this.projMat);
-// 			// console.log("eyeCoords: " + eyeCoords);
-// 			worldRay = toWorldCoords(eyeCoords, this.viewMat);
-// 			// console.log("worldRay: " + worldRay);
-// 		}
-
-// 		for(var i = 0; i < 3; ++i){
-// 			if( checkCollision(this.goblins[i].getWorldSpaceBoundingSphere(), worldRay) ){
-// 				this.pickingObject = this.goblins[i];
-// 				break;
-// 			}
-// 			if( checkCollision(this.cats[i].getWorldSpaceBoundingSphere(), worldRay) ){
-// 				this.pickingObject = this.goblins[i];
-// 				break;
-// 			}
-// 			if( checkCollision(this.rects[i].getWorldSpaceBoundingSphere(), worldRay) ){
-// 				this.pickingObject = this.goblins[i];
-// 				break;
-// 			}
-// 		}
-// 		console.log("pickingObject: " + this.pickingObject);
-// 	}
-// }
-
-// function checkCollision(worldObject, worldRay){
-// 	console.log(worldObject);
-// 	return false;
-//}
 
 function toEyeCoords(clipCoords, projMat){
 	let iProjMat = inverse(projMat);
@@ -460,7 +429,7 @@ function toWorldCoords(eyeCoords, viewMat){
 }
 
 App.prototype.onMouseUp = function(event){
-	this.pickingObject = null;
+	this.picking.object = null;
 }
 
 App.prototype.pointerLockChange = function(event){
@@ -468,6 +437,6 @@ App.prototype.pointerLockChange = function(event){
 		document.mozPointerLockElement === this.canvas){
 
 	} else {
-		this.state.lookAround = false;
+		this.movement.lookAround = false;
 	}
 }

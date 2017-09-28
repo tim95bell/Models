@@ -1,9 +1,20 @@
 
 
-function Model(dae, tga){
+function Model(dae, tga, trackIndex){
 	this.dae = dae;
 	this.tex = tga;
-	this.frameId = 0.0;
+
+	this.currentTrack = {
+		lerpAmount : 0.0,
+		frameId : 0.0,
+		trackIndex : trackIndex
+	};
+	// this.nextTrack = {
+	// 	lerpAmount : 0.0,
+	// 	frameId : 0.0,
+	// 	trackIndex : 0.0
+	// };
+
 	// this.radius
 	// this.center
 	this.modelMatrix = this.createModelMatrix();
@@ -13,20 +24,6 @@ function Model(dae, tga){
 	this.animationTrackIndex = 0;
 	this.playbackSpeed = 1.0;
 	this.updateSkeleton();
-}
-
-Model.prototype.incrementAnimationTrackIndex = function(){
-	this.animationTrackIndex += 1;
-	if(this.animationTrackIndex > 2){
-		this.animationTrackIndex = 0;
-	}
-}
-
-Model.prototype.decrementAnimationTrackIndex = function(){
-	this.animationTrackIndex -= 1;
-	if(this.animationTrackIndex < 0){
-		this.animationTrackIndex = 2;
-	}
 }
 
 Model.prototype.setPlaybackSpeed = function(val){
@@ -103,10 +100,10 @@ Model.prototype.updateSkeleton = function(){
 	let SMNextFrame;
 	let frameCount;
 
-	this.frameId += 0.1*this.playbackSpeed;
+	this.currentTrack.frameId += 0.1*this.playbackSpeed;
 
 	for(var boneIdx = 0; boneIdx < this.dae.bones.length; ++boneIdx){
-		let trackIndex = this.animationTrackIndex;
+		let trackIndex = this.currentTrack.trackIndex;
 		let bone = this.dae.bones[boneIdx];
 		let animationTrack = bone.animationTracks[trackIndex];
 		if(animationTrack === undefined){
@@ -115,7 +112,7 @@ Model.prototype.updateSkeleton = function(){
 		}
 		frameCount = animationTrack.keyFrameTransform.length;
 
-		let frameIdModulo = this.frameId%frameCount;
+		let frameIdModulo = this.currentTrack.frameId%frameCount;
 		let frameIdOne = Math.floor(frameIdModulo);
 		let frameIdTwo = frameIdOne + 1;
 		if(frameIdTwo >= frameCount){
@@ -141,7 +138,7 @@ Model.prototype.updateSkeleton = function(){
 		this.dae.bones[boneIdx].skinningMatrix = SM;
 		SMNextFrame = mult(jointMatrixNextFrame, IBM);
 		this.dae.bones[boneIdx].skinningMatrixNextFrame = SMNextFrame;
-		this.dae.lerpAmount = lerpAmount;
+		this.currentTrack.lerpAmount = lerpAmount;
 	}
 }
 
@@ -176,7 +173,7 @@ Model.prototype.pushBoneMatrixArray = function(gl, program){
 
 Model.prototype.pushLerpAmount = function(gl, program){
 	const loc = gl.getUniformLocation(program, "lerpAmount");
-	gl.uniform1f(loc, this.dae.lerpAmount);	
+	gl.uniform1f(loc, this.currentTrack.lerpAmount);	
 }
 
 Model.prototype.update = function(){
