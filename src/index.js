@@ -1,17 +1,21 @@
 let app;
 
 window.onload = function init(){
-	window.addEventListener("keydown", function(e){ keyDown(e); });
-    window.addEventListener("keyup", function(e){ keyUp(e); });
-
     app = new App();
+
+	window.addEventListener("keydown", function(e){ app.keyDown(e); });
+    window.addEventListener("keyup", function(e){ app.keyUp(e); });
+    window.addEventListener("click", function(e){ app.onClick(event); });
+    window.addEventListener("mousemove", function(e){ app.onMouseMove(event); });
+    window.addEventListener("mousedown", function(e){ app.onMouseDown(event); });
+    window.addEventListener("mouseup", function(e){ app.onMouseUp(event); });
+    document.addEventListener("pointerlockchange", pointerLockChange, false);
+    document.addEventListener("mozpointerlockchange", pointerLockChange, false);
+    document.addEventListener("webkitpointerlockchange", pointerLockChange, false);
+
     app.run();
 }
 
-function keyDown(keyEvent){
-    app.keyDown(keyEvent);
-}
-
-function keyUp(keyEvent){
-    app.keyUp(keyEvent);
+function pointerLockChange(e){
+    app.pointerLockChange(e);
 }

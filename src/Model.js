@@ -4,11 +4,39 @@ function Model(dae, tga){
 	this.dae = dae;
 	this.tex = tga;
 	this.frameId = 0.0;
+	// this.radius
+	// this.center
 	this.modelMatrix = this.createModelMatrix();
 	this.xRot = 270;
 	this.loc = vec3(0,0,0);
 	this.size = 1;
 	this.animationTrackIndex = 0;
+	this.playbackSpeed = 1.0;
+	this.updateSkeleton();
+}
+
+Model.prototype.incrementAnimationTrackIndex = function(){
+	this.animationTrackIndex += 1;
+	if(this.animationTrackIndex > 2){
+		this.animationTrackIndex = 0;
+	}
+}
+
+Model.prototype.decrementAnimationTrackIndex = function(){
+	this.animationTrackIndex -= 1;
+	if(this.animationTrackIndex < 0){
+		this.animationTrackIndex = 2;
+	}
+}
+
+Model.prototype.setPlaybackSpeed = function(val){
+	this.playbackSpeed = val;
+}
+
+Model.prototype.getWorldSpaceBoundingSphere = function(){
+	let worldRadius = this.modelRadius * this.size;
+	let worldCenter = multiplyMat4Vec4(this.worldMatrix, multiplyMat4Vec4(this.modelMatrix, this.center));
+	return {c: worldCenter, r: worldRadius};
 }
 
 Model.prototype.createModelMatrix = function(){
@@ -43,13 +71,6 @@ Model.prototype.createModelMatrix = function(){
 	const xSize = maxX - minX;
 	const ySize = maxY - minY;
 	const zSize = maxZ - minZ;
-	// if(xSize > ySize && xSize > zSize){
-	// 	scaleSize = 1.0/(xSize);	
-	// } else if(ySize > xSize && ySize > zSize){
-	// 	scaleSize = 1.0/(ySize);	
-	// } else {
-	// 	scaleSize = 1.0/(zSize);	
-	// }
 	scaleSize = 1.0/ySize;
 	const centerX = minX + xSize/2;
 	const centerY = minY + ySize/2;
@@ -57,6 +78,9 @@ Model.prototype.createModelMatrix = function(){
 	const s = scalem(scaleSize, scaleSize, scaleSize);
 	const t = translate( -centerX, -centerY, -centerZ );
 	const mat = mult(s, t);
+	this.center = vec4(centerX, centerY, centerZ, 1);
+	this.radius = Math.sqrt((minX-centerX)*(minX-centerX) +(minY-centerY)*(minY-centerY) +(minZ-centerZ)*(minZ-centerZ) );
+	this.modelRadius = this.radius * scaleSize;
 
 	return mat;
 }
@@ -65,8 +89,8 @@ Model.prototype.sendWorldMatrix = function(gl, program){
 	const s = scalem(this.size, this.size, this.size);
 	const r = rotate(this.xRot, [1,0,0]);
 	const t = translate( this.loc[0], this.loc[1], this.loc[2] );
-	const mat = mult(t, mult(r, s));
-	gl.uniformMatrix4fv( gl.getUniformLocation(program, "worldMatrix"), gl.FALSE, flatten(mat));
+	this.worldMatrix = mult(t, mult(r, s));
+	gl.uniformMatrix4fv( gl.getUniformLocation(program, "worldMatrix"), gl.FALSE, flatten(this.worldMatrix));
 }
 
 // update skinning and draw matrix for every bone
@@ -79,34 +103,35 @@ Model.prototype.updateSkeleton = function(){
 	let SMNextFrame;
 	let frameCount;
 
+	this.frameId += 0.1*this.playbackSpeed;
+
 	for(var boneIdx = 0; boneIdx < this.dae.bones.length; ++boneIdx){
-		let animationTrack = this.dae.bones[boneIdx].animationTracks[this.animationTrackIndex];
-		if(!animationTrack){
-			animationTrack = this.dae.bones[boneIdx].animationTracks[1];
+		let trackIndex = this.animationTrackIndex;
+		let bone = this.dae.bones[boneIdx];
+		let animationTrack = bone.animationTracks[trackIndex];
+		if(animationTrack === undefined){
+			trackIndex = 0;
+			animationTrack = bone.animationTracks[trackIndex];
 		}
 		frameCount = animationTrack.keyFrameTransform.length;
-		this.frameId += 0.0009;
-		if(this.frameId >= frameCount){
-			this.frameId = 0;
-		}
 
-		let frameIdOne = Math.floor(this.frameId);
+		let frameIdModulo = this.frameId%frameCount;
+		let frameIdOne = Math.floor(frameIdModulo);
 		let frameIdTwo = frameIdOne + 1;
 		if(frameIdTwo >= frameCount){
 			frameIdTwo = 0;
 		}
-		let lerpAmount = this.frameId - frameIdOne;
+		let lerpAmount = frameIdModulo - frameIdOne;
 		if(lerpAmount > 1){
 			lerpAmount = 0;
 		}
 
-		let bone = this.dae.bones[boneIdx];
 		if(frameCount > 0){
-			jointMatrix = this.calJointMatrix4Bone(bone, 1, frameIdOne%frameCount);
-			jointMatrixNextFrame = this.calJointMatrix4Bone(bone, 1, frameIdTwo%frameCount);
+			jointMatrix = this.calJointMatrix4Bone(bone, trackIndex, frameIdOne);
+			jointMatrixNextFrame = this.calJointMatrix4Bone(bone, trackIndex, frameIdTwo);
 		} else {
-			jointMatrix = this.calJointMatrix4Bone(bone, 1, -1);
-			jointMatrixNextFrame = this.calJointMatrix4Bone(bone, 1, -1);
+			jointMatrix = this.calJointMatrix4Bone(bone, trackIndex, -1);
+			jointMatrixNextFrame = this.calJointMatrix4Bone(bone, trackIndex, -1);
 		}
 
 		IBM = this.dae.bones[boneIdx].inverseBindMatrix;
@@ -141,8 +166,6 @@ Model.prototype.calJointMatrix4Bone = function(bone, trackIdx, frameIdx){
 }
 
 Model.prototype.pushBoneMatrixArray = function(gl, program){
-	this.updateSkeleton();
-	
 	for(var i = 0; i < this.dae.bones.length; ++i){
 		const bMLoc = gl.getUniformLocation( program, "boneMatrices["+i+"]");
 		const bMNfLoc = gl.getUniformLocation( program, "boneMatricesNF["+i+"]");
@@ -154,6 +177,10 @@ Model.prototype.pushBoneMatrixArray = function(gl, program){
 Model.prototype.pushLerpAmount = function(gl, program){
 	const loc = gl.getUniformLocation(program, "lerpAmount");
 	gl.uniform1f(loc, this.dae.lerpAmount);	
+}
+
+Model.prototype.update = function(){
+	this.updateSkeleton();
 }
 
 Model.prototype.render = function(gl, program, attributes){

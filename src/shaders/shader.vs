@@ -5,7 +5,8 @@ attribute vec4 bIndices;
 
 uniform mat4 modelMatrix;
 uniform mat4 worldMatrix;
-uniform mat4 viewProjectionMatrix;
+uniform mat4 viewMat;
+uniform mat4 projMat;
 
 uniform mat4 boneMatrices[30];
 uniform mat4 boneMatricesNF[30];
@@ -30,5 +31,5 @@ void main()
 
     vec4 finalPosition = mix(frameOnePosition, frameTwoPosition, lerpAmount);
 
-    gl_Position = viewProjectionMatrix * worldMatrix * modelMatrix * finalPosition; 
+    gl_Position = projMat * viewMat * worldMatrix * modelMatrix * finalPosition; 
 }
