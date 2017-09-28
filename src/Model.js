@@ -35,7 +35,8 @@ Model.prototype.initiateTransitionForward = function(gl, program){
 
 	this.nextTrack.frameId = 0.0;
 
-	this.initializeBoneNextTrack();
+	// this.initializeBoneNextTrack();
+	this.updateSkeleton(false, true);
 	this.pushBoneMatrixArrayNextTrack(gl, program);
 }
 
@@ -47,7 +48,8 @@ Model.prototype.initiateTransitionBackward = function(gl, program){
 
 	this.nextTrack.frameId = 0.0;
 
-	this.initializeBoneNextTrack();
+	// this.initializeBoneNextTrack();
+	this.updateSkeleton(false, true);
 	this.pushBoneMatrixArrayNextTrack(gl, program);
 }
 
@@ -55,7 +57,8 @@ Model.prototype.endTransition = function(gl, program){
 	this.currentTrack.lerpAmount = this.nextTrack.lerpAmount;
 	this.currentTrack.trackIndex = this.nextTrack.trackIndex;
 	this.currentTrack.frameId = this.nextTrack.frameId;
-	this.initializeBoneCurrentTrack();
+	// this.initializeBoneCurrentTrack();
+	this.updateSkeleton(true, false);
 	this.pushBoneMatrixArray(gl, program);
 }
 

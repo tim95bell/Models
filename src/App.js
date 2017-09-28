@@ -202,10 +202,12 @@ App.prototype.update = function(){
 		}
 	} 
 
-	for(var i = 0; i < 3; ++i){
-		this.goblins[i].update(this.gl, this.program, this.tracks.inTransition);
-		this.cats[i].update(this.gl, this.program, this.tracks.inTransition);
-		this.rects[i].update(this.gl, this.program, this.tracks.inTransition);
+	if(!this.playback.paused){
+		for(var i = 0; i < 3; ++i){
+			this.goblins[i].update(this.gl, this.program, this.tracks.inTransition);
+			this.cats[i].update(this.gl, this.program, this.tracks.inTransition);
+			this.rects[i].update(this.gl, this.program, this.tracks.inTransition);
+		}
 	}
 	this.move();
 }
