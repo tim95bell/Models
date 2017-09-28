@@ -9,6 +9,7 @@ function Model(dae, tga, trackIndex){
 		frameId : 0.0,
 		trackIndex : trackIndex
 	};
+	this.initializeBoneCurrentTrack();
 	// this.nextTrack = {
 	// 	lerpAmount : 0.0,
 	// 	frameId : 0.0,
@@ -24,6 +25,32 @@ function Model(dae, tga, trackIndex){
 	this.animationTrackIndex = 0;
 	this.playbackSpeed = 1.0;
 	this.updateSkeleton();
+}
+
+Model.prototype.initializeBoneCurrentTrack = function(){
+	for(var boneIdx = 0; boneIdx < this.dae.bones.length; ++boneIdx){
+		let bone = this.dae.bones[boneIdx];
+
+		let info = this.updateSkeletonBone(bone, this.currentTrack.frameId, this.currentTrack.trackIndex);
+		bone.jointMatrix = info.jointMatrix;
+		bone.jointMatrixNF = info.jointMatrixNF;
+		bone.skinningMatrix = info.skinningMatrix;
+		bone.skinningMatrixNF = info.skinningMatrixNF;
+		this.currentTrack.lerpAmount = info.lerpAmount;
+	}
+}
+
+Model.prototype.initializeBoneNextTrack = function(){
+	for(var boneIdx = 0; boneIdx < this.dae.bones.length; ++boneIdx){
+		let bone = this.dae.bones[boneIdx];
+
+		let info = this.updateSkeletonBone(bone, this.currentTrack.frameId, this.currentTrack.trackIndex);
+		bone.ntJointMatrix = info.jointMatrix;
+		bone.ntJointMatrixNF = info.jointMatrixNF;
+		bone.ntSkinningMatrix = info.skinningMatrix;
+		bone.ntSkinningMatrixNF = info.skinningMatrixNF;
+		this.nextTrack.lerpAmount = info.lerpAmount;
+	}
 }
 
 Model.prototype.setPlaybackSpeed = function(val){
@@ -90,56 +117,130 @@ Model.prototype.sendWorldMatrix = function(gl, program){
 	gl.uniformMatrix4fv( gl.getUniformLocation(program, "worldMatrix"), gl.FALSE, flatten(this.worldMatrix));
 }
 
-// update skinning and draw matrix for every bone
-// do this on CPU in Javascript
-Model.prototype.updateSkeleton = function(){
-	let jointMatrix;
-	let jointMatrixNextFrame;
-	let IBM;
-	let SM;
-	let SMNextFrame;
-	let frameCount;
+Model.prototype.updateSkeletonBone = function(bone, frameId, trackIndex){
+	let jointMatrix, jointMatrixNextFrame;
 
-	this.currentTrack.frameId += 0.1*this.playbackSpeed;
+	let animationTrack = bone.animationTracks[trackIndex];
+	if(animationTrack === undefined){
+		trackIndex = 0;
+		animationTrack = bone.animationTracks[trackIndex];
+	}
+
+	let frameCount = animationTrack.keyFrameTransform.length;
+
+	let frameIdModulo = frameId%frameCount;
+	let frameIdOne = Math.floor(frameIdModulo);
+	let frameIdTwo = frameIdOne + 1;
+	if(frameIdTwo >= frameCount){
+		frameIdTwo = 0;
+	}
+	let lerpAmount = frameIdModulo - frameIdOne;
+	if(lerpAmount > 1){
+		lerpAmount = 0;
+	}
+
+	if(frameCount > 0){
+		jointMatrix = this.calJointMatrix4Bone(bone, trackIndex, frameIdOne);
+		jointMatrixNextFrame = this.calJointMatrix4Bone(bone, trackIndex, frameIdTwo);
+	} else {
+		jointMatrix = this.calJointMatrix4Bone(bone, trackIndex, -1);
+		jointMatrixNextFrame = this.calJointMatrix4Bone(bone, trackIndex, -1);
+	}
+
+	let IBM = bone.inverseBindMatrix;
+	let SM = mult(jointMatrix, IBM);
+	let SMNextFrame = mult(jointMatrixNextFrame, IBM);
+	return {
+		jointMatrix : jointMatrix,
+		jointMatrixNF : jointMatrixNextFrame,
+		skinningMatrix : SM,
+		skinningMatrixNF : SMNextFrame,
+		lerpAmount : lerpAmount
+	};
+}
+
+Model.prototype.updateSkeleton = function(doCurrent, doNext){
+	if(doCurrent){
+		this.currentTrack.frameId += 0.1*this.playbackSpeed;
+	}
+	// if(doNext){
+	// 	this.nextTrack.frameId += 0.1*this.playbackSpeed;
+	// }
 
 	for(var boneIdx = 0; boneIdx < this.dae.bones.length; ++boneIdx){
-		let trackIndex = this.currentTrack.trackIndex;
 		let bone = this.dae.bones[boneIdx];
-		let animationTrack = bone.animationTracks[trackIndex];
-		if(animationTrack === undefined){
-			trackIndex = 0;
-			animationTrack = bone.animationTracks[trackIndex];
-		}
-		frameCount = animationTrack.keyFrameTransform.length;
 
-		let frameIdModulo = this.currentTrack.frameId%frameCount;
-		let frameIdOne = Math.floor(frameIdModulo);
-		let frameIdTwo = frameIdOne + 1;
-		if(frameIdTwo >= frameCount){
-			frameIdTwo = 0;
-		}
-		let lerpAmount = frameIdModulo - frameIdOne;
-		if(lerpAmount > 1){
-			lerpAmount = 0;
+		if(doCurrent){
+			// update current track
+			let updatedInfo = this.updateSkeletonBone(bone, this.currentTrack.frameId, this.currentTrack.trackIndex);
+			bone.jointMatrix = updatedInfo.jointMatrix;
+			bone.jointMatrixNF = updatedInfo.jointMatrixNF;
+			bone.skinningMatrix = updatedInfo.skinningMatrix;
+			bone.skinningMatrixNF = updatedInfo.skinningMatrixNF;
+			this.currentTrack.lerpAmount = updatedInfo.lerpAmount;
 		}
 
-		if(frameCount > 0){
-			jointMatrix = this.calJointMatrix4Bone(bone, trackIndex, frameIdOne);
-			jointMatrixNextFrame = this.calJointMatrix4Bone(bone, trackIndex, frameIdTwo);
-		} else {
-			jointMatrix = this.calJointMatrix4Bone(bone, trackIndex, -1);
-			jointMatrixNextFrame = this.calJointMatrix4Bone(bone, trackIndex, -1);
-		}
+		// if(doNext){
+		// 	// update next track
+		// 	let ntUpdatedInfo = this.updateSkeletonBone(bone, this.nextTrack.frameId, this.nextTrack.trackIndex);
+		// 	bone.ntJointMatrix = ntUpdatedInfo.jointMatrix;
+		// 	bone.ntJointMatrixNF = ntUpdatedInfo.jointMatrixNF;
+		// 	bone.ntSkinningMatrix = ntUpdatedInfo.skinningMatrix;
+		// 	bone.ntSkinningMatrixNF = ntUpdatedInfo.skinningMatrixNF;
+		// 	this.nextTrack.lerpAmount = ntUpdatedInfo.lerpAmount;
+		// }
 
-		IBM = this.dae.bones[boneIdx].inverseBindMatrix;
-		this.dae.bones[boneIdx].jointMatrix = jointMatrix;
-		this.dae.bones[boneIdx].jointMatrixNextFrame = jointMatrixNextFrame;
-		SM = mult(jointMatrix, IBM);
-		this.dae.bones[boneIdx].skinningMatrix = SM;
-		SMNextFrame = mult(jointMatrixNextFrame, IBM);
-		this.dae.bones[boneIdx].skinningMatrixNextFrame = SMNextFrame;
-		this.currentTrack.lerpAmount = lerpAmount;
 	}
+
+	///////////////////////////////////////////////////////
+	// let jointMatrix;
+	// let jointMatrixNextFrame;
+	// let IBM;
+	// let SM;
+	// let SMNextFrame;
+	// let frameCount;
+
+	// this.currentTrack.frameId += 0.1*this.playbackSpeed;
+
+	// for(var boneIdx = 0; boneIdx < this.dae.bones.length; ++boneIdx){
+	// 	let trackIndex = this.currentTrack.trackIndex;
+	// 	let bone = this.dae.bones[boneIdx];
+	// 	let animationTrack = bone.animationTracks[trackIndex];
+	// 	if(animationTrack === undefined){
+	// 		trackIndex = 0;
+	// 		animationTrack = bone.animationTracks[trackIndex];
+	// 	}
+	// 	frameCount = animationTrack.keyFrameTransform.length;
+
+	// 	let frameIdModulo = this.currentTrack.frameId%frameCount;
+	// 	let frameIdOne = Math.floor(frameIdModulo);
+	// 	let frameIdTwo = frameIdOne + 1;
+	// 	if(frameIdTwo >= frameCount){
+	// 		frameIdTwo = 0;
+	// 	}
+	// 	let lerpAmount = frameIdModulo - frameIdOne;
+	// 	if(lerpAmount > 1){
+	// 		lerpAmount = 0;
+	// 	}
+
+	// 	if(frameCount > 0){
+	// 		jointMatrix = this.calJointMatrix4Bone(bone, trackIndex, frameIdOne);
+	// 		jointMatrixNextFrame = this.calJointMatrix4Bone(bone, trackIndex, frameIdTwo);
+	// 	} else {
+	// 		jointMatrix = this.calJointMatrix4Bone(bone, trackIndex, -1);
+	// 		jointMatrixNextFrame = this.calJointMatrix4Bone(bone, trackIndex, -1);
+	// 	}
+
+	// 	IBM = bone.inverseBindMatrix;
+	// 	bone.jointMatrix = jointMatrix;
+	// 	bone.jointMatrixNextFrame = jointMatrixNextFrame;
+	// 	SM = mult(jointMatrix, IBM);
+	// 	bone.skinningMatrix = SM;
+	// 	SMNextFrame = mult(jointMatrixNextFrame, IBM);
+	// 	bone.skinningMatrixNF = SMNextFrame;
+	// 	this.currentTrack.lerpAmount = lerpAmount;
+	// }
+
 }
 
 Model.prototype.calJointMatrix4Bone = function(bone, trackIdx, frameIdx){
@@ -167,7 +268,16 @@ Model.prototype.pushBoneMatrixArray = function(gl, program){
 		const bMLoc = gl.getUniformLocation( program, "boneMatrices["+i+"]");
 		const bMNfLoc = gl.getUniformLocation( program, "boneMatricesNF["+i+"]");
 		gl.uniformMatrix4fv(bMLoc, false, flatten(this.dae.bones[i].skinningMatrix));
-		gl.uniformMatrix4fv(bMNfLoc, false, flatten(this.dae.bones[i].skinningMatrixNextFrame));
+		gl.uniformMatrix4fv(bMNfLoc, false, flatten(this.dae.bones[i].skinningMatrixNF));
+	}
+}
+
+Model.prototype.pushBoneMatrixArrayNextTrack = function(gl, program){
+	for(var i = 0; i < this.dae.bones.length; ++i){
+		const bMLoc = gl.getUniformLocation( program, "ntBoneMatrices["+i+"]");
+		const bMNfLoc = gl.getUniformLocation( program, "ntBoneMatricesNF["+i+"]");
+		gl.uniformMatrix4fv(bMLoc, false, flatten(this.dae.bones[i].ntSkinningMatrix));
+		gl.uniformMatrix4fv(bMNfLoc, false, flatten(this.dae.bones[i].ntSkinningMatrixNF));
 	}
 }
 
@@ -176,15 +286,30 @@ Model.prototype.pushLerpAmount = function(gl, program){
 	gl.uniform1f(loc, this.currentTrack.lerpAmount);	
 }
 
-Model.prototype.update = function(){
-	this.updateSkeleton();
+Model.prototype.pushLerpAmountNextTrack = function(gl, program){
+	const loc = gl.getUniformLocation(program, "lerpAmountNextTrack");
+	gl.uniform1f(loc, this.nextTrack.lerpAmount);	
 }
 
-Model.prototype.render = function(gl, program, attributes){
-	colladaParser_MakeVertexDataCopy(this.dae);	
+Model.prototype.updateInTransition = function(gl, program, lerpBetweenTracks){
+	this.updateSkeleton(true, true);
+}
+
+Model.prototype.update = function(gl, program){
+	this.updateSkeleton(true, false);
+}
+
+Model.prototype.render = function(gl, program, attributes, lerpBetweenTracks){
 
 	this.pushBoneMatrixArray(gl, program);
 	this.pushLerpAmount(gl, program);
+	if(lerpBetweenTracks){
+		this.pushBoneMatrixArrayNextTrack(gl, program);
+		this.pushLerpAmountNextTrack(gl, program);
+	}
+
+	colladaParser_MakeVertexDataCopy(this.dae);	
+
 	gl.uniformMatrix4fv( gl.getUniformLocation(program, "modelMatrix"), gl.FALSE, flatten(this.modelMatrix));
 	this.sendWorldMatrix(gl, program);
 

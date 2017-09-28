@@ -12,11 +12,11 @@ uniform mat4 boneMatrices[30];
 uniform mat4 boneMatricesNF[30];
 uniform float lerpAmount;
 
-//uniform mat4 ntBoneMatrices[30];
-//uniform mat4 ntBoneMatricesNF[30];
-//uniform float ntLerpAmount;
+uniform mat4 ntBoneMatrices[30];
+uniform mat4 ntBoneMatricesNF[30];
+uniform float ntLerpAmount;
 
-//uniform float lerpBetweenTracksAmount;
+uniform float lerpBetweenTracksAmount;
 
 varying vec2 varyingTex;
 
