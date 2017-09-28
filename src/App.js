@@ -184,6 +184,9 @@ App.prototype.update = function(){
 	this.updateViewMat()
 	if(!this.playback.paused){
 		for(var i = 0; i < 3; ++i){
+			this.goblins[i].update(this.gl, this.program, false);
+			this.cats[i].update(this.gl, this.program, false);
+			this.rects[i].update(this.gl, this.program, false);
 		}
 	}
 	this.move();
