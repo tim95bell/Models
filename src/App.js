@@ -182,12 +182,30 @@ App.prototype.move = function(){
 
 App.prototype.update = function(){
 	this.updateViewMat()
-	if(!this.playback.paused){
-		for(var i = 0; i < 3; ++i){
-			this.goblins[i].update(this.gl, this.program, false);
-			this.cats[i].update(this.gl, this.program, false);
-			this.rects[i].update(this.gl, this.program, false);
+
+	if(this.tracks.inTransition){
+		this.tracks.time = Date.now();
+		if(this.tracks.time >= this.tracks.endTime){
+    		this.gl.uniform1f(this.gl.getUniformLocation(this.program, "lerpBetweenTracksAmount"), 0.0);
+			this.tracks.inTransition = false;
+			this.tracks.time = null;
+			this.tracks.endTime = null;
+			for(var i = 0; i < 3; ++i){
+				this.goblins[i].endTransition(this.gl, this.program);
+				this.cats[i].endTransition(this.gl, this.program);
+				this.rects[i].endTransition(this.gl, this.program);
+			}
+		} else {
+			let lerp = (this.tracks.endTime - this.tracks.time)/2000;
+			console.log(lerp);
+  		  	this.gl.uniform1f(this.gl.getUniformLocation(this.program, "lerpBetweenTracksAmount"), lerp);
 		}
+	} 
+
+	for(var i = 0; i < 3; ++i){
+		this.goblins[i].update(this.gl, this.program, this.tracks.inTransition);
+		this.cats[i].update(this.gl, this.program, this.tracks.inTransition);
+		this.rects[i].update(this.gl, this.program, this.tracks.inTransition);
 	}
 	this.move();
 }
@@ -199,9 +217,9 @@ App.prototype.render = function()
 	this.gl.clear( this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT );
 
 	for(var i = 0; i < 3; ++i){
-		this.goblins[i].render(this.gl, this.program, this.attributes);
-		this.cats[i].render(this.gl, this.program, this.attributes);
-		this.rects[i].render(this.gl, this.program, this.attributes);
+		this.goblins[i].render(this.gl, this.program, this.attributes, this.tracks.inTransition);
+		this.cats[i].render(this.gl, this.program, this.attributes, this.tracks.inTransition);
+		this.rects[i].render(this.gl, this.program, this.attributes, this.tracks.inTransition);
 	}
 }
 
@@ -212,6 +230,9 @@ App.prototype.run = function(){
 }
 
 App.prototype.keyDown = function(keyEvent){
+	if(this.tracks.inTransition){
+		return;
+	}
 	const key = keyEvent.key;
 	switch(key){
 		case '-':
@@ -240,9 +261,9 @@ App.prototype.keyDown = function(keyEvent){
 			this.tracks.time = Date.now();
 			this.tracks.endTime = this.tracks.time + 2000;
 			for(var i = 0; i < 3; ++i){
-				// this.goblins[i].initiateTransitionForward(this.gl, this.program);
-				// this.cats[i].initiateTransitionForward(this.gl, this.program);
-				// this.rects[i].initiateTransitionForward(this.gl, this.program);
+				this.goblins[i].initiateTransitionForward(this.gl, this.program);
+				this.cats[i].initiateTransitionForward(this.gl, this.program);
+				this.rects[i].initiateTransitionForward(this.gl, this.program);
 			}
 		} break;
 		case 'z':
@@ -251,9 +272,9 @@ App.prototype.keyDown = function(keyEvent){
 			this.tracks.time = Date.now();
 			this.tracks.endTime = this.tracks.time + 2000;
 			for(var i = 0; i < 3; ++i){
-				// this.goblins[i].initiateTransitionBackward(this.gl, this.program);
-				// this.cats[i].initiateTransitionBackward(this.gl, this.program);
-				// this.rects[i].initiateTransitionBackward(this.gl, this.program);
+				this.goblins[i].initiateTransitionBackward(this.gl, this.program);
+				this.cats[i].initiateTransitionBackward(this.gl, this.program);
+				this.rects[i].initiateTransitionBackward(this.gl, this.program);
 			}
 		} break;
 		case 'p':
@@ -322,12 +343,18 @@ App.prototype.keyUp = function(keyEvent){
 }
 
 App.prototype.onClick = function(event){
+	if(this.tracks.inTransition){
+		return;
+	}
 	if(!this.picking.enabled){
 		this.enterLookAroundMode();
 	}
 }
 
 App.prototype.onMouseMove = function(e){
+	if(this.tracks.inTransition){
+		return;
+	}
 	if(this.movement.lookAround){
 		let movementX = event.movementX || event.mozMovementX || 
 			event.webkitMovementX || 0;
@@ -347,6 +374,9 @@ App.prototype.onMouseMove = function(e){
 }
 
 App.prototype.onMouseDown = function(event){
+	if(this.tracks.inTransition){
+		return;
+	}
 	if(this.picking.enabled && !this.movement.lookAround){
 		let x = event.clientX;
 		let y = event.clientY;

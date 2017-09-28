@@ -37,21 +37,21 @@ void main()
 
     vec4 finalPosition = mix(frameOnePosition, frameTwoPosition, lerpAmount);
 
-    /*if(lerpBetweenTracksAmount > 0.0){
-        vec4 ltFrameOnePosition = vec4(0,0,0,0);
-        vec4 ltFrameTwoPosition = vec4(0,0,0,0);
+    if(lerpBetweenTracksAmount > 0.0){
+        vec4 ntFrameOnePosition = vec4(0,0,0,0);
+        vec4 ntFrameTwoPosition = vec4(0,0,0,0);
         for(int i = 0; i < 4; ++i){
-            ltFrameOnePosition += 
-                ltBoneMatrices[ int(bIndices[i]) ] *
+            ntFrameOnePosition += 
+                ntBoneMatrices[ int(bIndices[i]) ] *
                 bWeights[i] * vPos;
-            ltFrameTwoPosition += 
-                ltBoneMatricesNF[ int(bIndices[i]) ] *
+            ntFrameTwoPosition += 
+                ntBoneMatricesNF[ int(bIndices[i]) ] *
                 bWeights[i] * vPos;
         }
 
-        vec4 ltFinalPosition = mix(ltFrameOnePosition, ltFrameTwoPosition, ltLerpAmount);
-        finalPosition = mix(ltFinalPosition, finalPosition, lerpBetweenTracksAmount);
-    }*/
+        vec4 ntFinalPosition = mix(ntFrameOnePosition, ntFrameTwoPosition, ntLerpAmount);
+        finalPosition = mix(ntFinalPosition, finalPosition, lerpBetweenTracksAmount);
+    }
 
     gl_Position = projMat * viewMat * worldMatrix * modelMatrix * finalPosition;
 }

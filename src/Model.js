@@ -10,11 +10,11 @@ function Model(dae, tga, trackIndex){
 		trackIndex : trackIndex
 	};
 	this.initializeBoneCurrentTrack();
-	// this.nextTrack = {
-	// 	lerpAmount : 0.0,
-	// 	frameId : 0.0,
-	// 	trackIndex : 0.0
-	// };
+	this.nextTrack = {
+		lerpAmount : 0.0,
+		frameId : 0.0,
+		trackIndex : 0.0
+	};
 
 	// this.radius
 	// this.center
@@ -25,6 +25,38 @@ function Model(dae, tga, trackIndex){
 	this.animationTrackIndex = 0;
 	this.playbackSpeed = 1.0;
 	this.updateSkeleton();
+}
+
+Model.prototype.initiateTransitionForward = function(gl, program){
+	this.nextTrack.trackIndex = this.currentTrack.trackIndex + 1;
+	if(this.nextTrack.trackIndex > 2){
+		this.nextTrack.trackIndex = 0;
+	}
+
+	this.nextTrack.frameId = 0.0;
+
+	this.initializeBoneNextTrack();
+	this.pushBoneMatrixArrayNextTrack(gl, program);
+}
+
+Model.prototype.initiateTransitionBackward = function(gl, program){
+	this.nextTrack.trackIndex = this.currentTrack.trackIndex - 1;
+	if(this.nextTrack.trackIndex < 0){
+		this.nextTrack.trackIndex = 2;
+	}
+
+	this.nextTrack.frameId = 0.0;
+
+	this.initializeBoneNextTrack();
+	this.pushBoneMatrixArrayNextTrack(gl, program);
+}
+
+Model.prototype.endTransition = function(gl, program){
+	this.currentTrack.lerpAmount = this.nextTrack.lerpAmount;
+	this.currentTrack.trackIndex = this.nextTrack.trackIndex;
+	this.currentTrack.frameId = this.nextTrack.frameId;
+	this.initializeBoneCurrentTrack();
+	this.pushBoneMatrixArray(gl, program);
 }
 
 Model.prototype.initializeBoneCurrentTrack = function(){
@@ -163,9 +195,9 @@ Model.prototype.updateSkeleton = function(doCurrent, doNext){
 	if(doCurrent){
 		this.currentTrack.frameId += 0.1*this.playbackSpeed;
 	}
-	// if(doNext){
-	// 	this.nextTrack.frameId += 0.1*this.playbackSpeed;
-	// }
+	if(doNext){
+		this.nextTrack.frameId += 0.1*this.playbackSpeed;
+	}
 
 	for(var boneIdx = 0; boneIdx < this.dae.bones.length; ++boneIdx){
 		let bone = this.dae.bones[boneIdx];
@@ -180,67 +212,17 @@ Model.prototype.updateSkeleton = function(doCurrent, doNext){
 			this.currentTrack.lerpAmount = updatedInfo.lerpAmount;
 		}
 
-		// if(doNext){
-		// 	// update next track
-		// 	let ntUpdatedInfo = this.updateSkeletonBone(bone, this.nextTrack.frameId, this.nextTrack.trackIndex);
-		// 	bone.ntJointMatrix = ntUpdatedInfo.jointMatrix;
-		// 	bone.ntJointMatrixNF = ntUpdatedInfo.jointMatrixNF;
-		// 	bone.ntSkinningMatrix = ntUpdatedInfo.skinningMatrix;
-		// 	bone.ntSkinningMatrixNF = ntUpdatedInfo.skinningMatrixNF;
-		// 	this.nextTrack.lerpAmount = ntUpdatedInfo.lerpAmount;
-		// }
+		if(doNext){
+			// update next track
+			let ntUpdatedInfo = this.updateSkeletonBone(bone, this.nextTrack.frameId, this.nextTrack.trackIndex);
+			bone.ntJointMatrix = ntUpdatedInfo.jointMatrix;
+			bone.ntJointMatrixNF = ntUpdatedInfo.jointMatrixNF;
+			bone.ntSkinningMatrix = ntUpdatedInfo.skinningMatrix;
+			bone.ntSkinningMatrixNF = ntUpdatedInfo.skinningMatrixNF;
+			this.nextTrack.lerpAmount = ntUpdatedInfo.lerpAmount;
+		}
 
 	}
-
-	///////////////////////////////////////////////////////
-	// let jointMatrix;
-	// let jointMatrixNextFrame;
-	// let IBM;
-	// let SM;
-	// let SMNextFrame;
-	// let frameCount;
-
-	// this.currentTrack.frameId += 0.1*this.playbackSpeed;
-
-	// for(var boneIdx = 0; boneIdx < this.dae.bones.length; ++boneIdx){
-	// 	let trackIndex = this.currentTrack.trackIndex;
-	// 	let bone = this.dae.bones[boneIdx];
-	// 	let animationTrack = bone.animationTracks[trackIndex];
-	// 	if(animationTrack === undefined){
-	// 		trackIndex = 0;
-	// 		animationTrack = bone.animationTracks[trackIndex];
-	// 	}
-	// 	frameCount = animationTrack.keyFrameTransform.length;
-
-	// 	let frameIdModulo = this.currentTrack.frameId%frameCount;
-	// 	let frameIdOne = Math.floor(frameIdModulo);
-	// 	let frameIdTwo = frameIdOne + 1;
-	// 	if(frameIdTwo >= frameCount){
-	// 		frameIdTwo = 0;
-	// 	}
-	// 	let lerpAmount = frameIdModulo - frameIdOne;
-	// 	if(lerpAmount > 1){
-	// 		lerpAmount = 0;
-	// 	}
-
-	// 	if(frameCount > 0){
-	// 		jointMatrix = this.calJointMatrix4Bone(bone, trackIndex, frameIdOne);
-	// 		jointMatrixNextFrame = this.calJointMatrix4Bone(bone, trackIndex, frameIdTwo);
-	// 	} else {
-	// 		jointMatrix = this.calJointMatrix4Bone(bone, trackIndex, -1);
-	// 		jointMatrixNextFrame = this.calJointMatrix4Bone(bone, trackIndex, -1);
-	// 	}
-
-	// 	IBM = bone.inverseBindMatrix;
-	// 	bone.jointMatrix = jointMatrix;
-	// 	bone.jointMatrixNextFrame = jointMatrixNextFrame;
-	// 	SM = mult(jointMatrix, IBM);
-	// 	bone.skinningMatrix = SM;
-	// 	SMNextFrame = mult(jointMatrixNextFrame, IBM);
-	// 	bone.skinningMatrixNF = SMNextFrame;
-	// 	this.currentTrack.lerpAmount = lerpAmount;
-	// }
-
 }
 
 Model.prototype.calJointMatrix4Bone = function(bone, trackIdx, frameIdx){
@@ -287,16 +269,16 @@ Model.prototype.pushLerpAmount = function(gl, program){
 }
 
 Model.prototype.pushLerpAmountNextTrack = function(gl, program){
-	const loc = gl.getUniformLocation(program, "lerpAmountNextTrack");
+	const loc = gl.getUniformLocation(program, "ntLerpAmount");
 	gl.uniform1f(loc, this.nextTrack.lerpAmount);	
 }
 
-Model.prototype.updateInTransition = function(gl, program, lerpBetweenTracks){
-	this.updateSkeleton(true, true);
-}
-
-Model.prototype.update = function(gl, program){
-	this.updateSkeleton(true, false);
+Model.prototype.update = function(gl, program, lerpBetweenTracks){
+	if(lerpBetweenTracks){
+		this.updateSkeleton(true, true);
+	} else {
+		this.updateSkeleton(true, false);
+	}
 }
 
 Model.prototype.render = function(gl, program, attributes, lerpBetweenTracks){
