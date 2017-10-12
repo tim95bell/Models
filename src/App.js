@@ -53,10 +53,10 @@ function App(){
 
 	//--------------------- Set Up Models ---------------------//
 	this.attributes = {
-		vertexPositions : new Attribute(),
-		vertexTextures : new Attribute(),
-		boneIndices : new Attribute(),
-		boneWeights : new Attribute()
+		vertexPositions : -1,
+		vertexTextures : -1,
+		boneIndices : -1,
+		boneWeights : -1 
 	};
 
 	const goblinDaePath = "assets/meshes/goblin.dae";
@@ -112,22 +112,23 @@ function App(){
 
 	//--------------------- Set Up Attributes ---------------------//
 	// vertexPositions
-	this.attributes.vertexPositions.id = this.gl.createBuffer();
-	this.gl.bindBuffer( this.gl.ARRAY_BUFFER, this.attributes.vertexPositions.id );
+	this.attributes.vertexPositions = this.gl.createBuffer();
+	this.gl.bindBuffer( this.gl.ARRAY_BUFFER, this.attributes.vertexPositions );
 	// vertexTextures
-	this.attributes.vertexTextures.id = this.gl.createBuffer();
-	this.gl.bindBuffer( this.gl.ARRAY_BUFFER, this.attributes.vertexTextures.id );
+	this.attributes.vertexTextures = this.gl.createBuffer();
+	this.gl.bindBuffer( this.gl.ARRAY_BUFFER, this.attributes.vertexTextures );
 	// boneIndices
-	this.attributes.boneIndices.id = this.gl.createBuffer();
-	this.gl.bindBuffer( this.gl.ARRAY_BUFFER, this.attributes.boneIndices.id );
+	this.attributes.boneIndices = this.gl.createBuffer();
+	this.gl.bindBuffer( this.gl.ARRAY_BUFFER, this.attributes.boneIndices );
 	// boneWeights
-	this.attributes.boneWeights.id = this.gl.createBuffer();
-	this.gl.bindBuffer( this.gl.ARRAY_BUFFER, this.attributes.boneWeights.id );
+	this.attributes.boneWeights = this.gl.createBuffer();
+	this.gl.bindBuffer( this.gl.ARRAY_BUFFER, this.attributes.boneWeights );
 
 
 	//--------------------- Uniforms ---------------------//
 	this.projMat = perspective(45,1,0.1,1000);
 	this.gl.uniformMatrix4fv( this.gl.getUniformLocation(this.program, "projMat"), this.gl.FALSE, flatten(this.projMat) );
+	this.viewMat = null;
 };
 
 App.prototype.updateViewMat = function(){
@@ -232,9 +233,6 @@ App.prototype.run = function(){
 }
 
 App.prototype.keyDown = function(keyEvent){
-	if(this.tracks.inTransition){
-		return;
-	}
 	const key = keyEvent.key;
 	switch(key){
 		case '-':
@@ -259,6 +257,9 @@ App.prototype.keyDown = function(keyEvent){
 		} break;
 		case 'x':
 		{
+			if(this.tracks.inTransition){
+				return;
+			}
 			this.tracks.inTransition = true;
 			this.tracks.time = Date.now();
 			this.tracks.endTime = this.tracks.time + 2000;
@@ -270,6 +271,9 @@ App.prototype.keyDown = function(keyEvent){
 		} break;
 		case 'z':
 		{
+			if(this.tracks.inTransition){
+				return;
+			}
 			this.tracks.inTransition = true;
 			this.tracks.time = Date.now();
 			this.tracks.endTime = this.tracks.time + 2000;
@@ -291,17 +295,17 @@ App.prototype.keyDown = function(keyEvent){
 		} break;
 		case '1':
 		{
-			this.view.eye = this.oneView.eye;
-			this.view.camPitch = this.oneView.camPitch;
-			this.view.camYaw = this.oneView.camYaw;
-			this.view.up = this.oneView.up;
-		} break;
-		case '2':
-		{
 			this.view.eye = this.twoView.eye;
 			this.view.camPitch = this.twoView.camPitch;
 			this.view.camYaw = this.twoView.camYaw;
 			this.view.up = this.twoView.up;
+		} break;
+		case '2':
+		{
+			this.view.eye = this.oneView.eye;
+			this.view.camPitch = this.oneView.camPitch;
+			this.view.camYaw = this.oneView.camYaw;
+			this.view.up = this.oneView.up;
 		} break;
 		case 'w':
 		{
@@ -345,18 +349,12 @@ App.prototype.keyUp = function(keyEvent){
 }
 
 App.prototype.onClick = function(event){
-	if(this.tracks.inTransition){
-		return;
-	}
 	if(!this.picking.enabled){
 		this.enterLookAroundMode();
 	}
 }
 
 App.prototype.onMouseMove = function(e){
-	if(this.tracks.inTransition){
-		return;
-	}
 	if(this.movement.lookAround){
 		let movementX = event.movementX || event.mozMovementX || 
 			event.webkitMovementX || 0;
@@ -376,9 +374,6 @@ App.prototype.onMouseMove = function(e){
 }
 
 App.prototype.onMouseDown = function(event){
-	if(this.tracks.inTransition){
-		return;
-	}
 	if(this.picking.enabled && !this.movement.lookAround){
 		let x = event.clientX;
 		let y = event.clientY;
@@ -395,6 +390,7 @@ App.prototype.onMouseDown = function(event){
 				let r = goblin_i_boundingSphere.r;
 				if(this.checkCollision(p1, p2, c, r)){
 					this.picking.object = goblin_i;
+					console.log("HIT");
 					break;
 				}
 			}
@@ -406,6 +402,7 @@ App.prototype.onMouseDown = function(event){
 				let r = cats_i_boundingSphere.r;
 				if(this.checkCollision(p1, p2, c, r)){
 					this.picking.object = cats_i;
+					console.log("HIT");
 					break;
 				}
 			}
@@ -417,6 +414,7 @@ App.prototype.onMouseDown = function(event){
 				let r = rects_i_boundingSphere.r;
 				if(this.checkCollision(p1, p2, c, r)){
 					this.picking.object = rects_i;
+					console.log("HIT");
 					break;
 				}
 			}
@@ -424,24 +422,21 @@ App.prototype.onMouseDown = function(event){
 		console.log("pickingObject: " + this.picking.object);
 	}
 }
+
 App.prototype.checkCollision = function(p1, p2, c, r){
-	let pc = subtractPoints(p1, c);
+	let pc = subtractPoints(c, p1);
 	let p12 = subtractPoints(p2, p1);
-	let pq_direction = dotProduct(pc, p12)/Math.sqrt(dotProduct(p12, p12));
-	let pq = scale(pq_direction, addPoints(p12, p1));
-	let pq_to_c = subtractPoints(c, pq);
+	let p12Normalized = normaliseVector(p12);
+	let t = dotProduct(pc, p12)/Math.sqrt(dotProduct(p12, p12));
+	let q = addPoints(p1, multiplyPoint(p12, t));
 
+	let xDif = q[0] - c[0];
+	let yDif = q[1] - c[1];
+	let zDif = q[2] - c[2];
 
-	pq_to_c_length = length(pq_to_c);
+	let dist = Math.sqrt(xDif*xDif + yDif*yDif + zDif*zDif);
 
-	console.log("c: " + c + "\nr: " + r + "\np1: " + p1 + 
-		"\np2: " + p2 + "\npq: " + pq + "\npq_to_c_length: " + pq_to_c_length);
-
-	if(pq_to_c_length < r){
-		return true;
-	} else {
-		return false;
-	}
+	return dist < r;
 }
 
 function toEyeCoords(clipCoords, projMat){

@@ -18,7 +18,7 @@ function Model(dae, tga, trackIndex){
 
 	// this.radius
 	// this.center
-	this.modelMatrix = this.createModelMatrix();
+	this.modelMat = this.createModelMatrix();
 	this.xRot = 270;
 	this.loc = vec3(0,0,0);
 	this.size = 1;
@@ -94,7 +94,7 @@ Model.prototype.setPlaybackSpeed = function(val){
 
 Model.prototype.getWorldSpaceBoundingSphere = function(){
 	let worldRadius = this.modelRadius * this.size;
-	let worldCenter = multiplyMat4Vec4(this.worldMatrix, multiplyMat4Vec4(this.modelMatrix, this.center));
+	let worldCenter = multiplyMat4Vec4(this.worldMat, multiplyMat4Vec4(this.modelMat, this.center));
 	return {c: worldCenter, r: worldRadius};
 }
 
@@ -148,8 +148,8 @@ Model.prototype.sendWorldMatrix = function(gl, program){
 	const s = scalem(this.size, this.size, this.size);
 	const r = rotate(this.xRot, [1,0,0]);
 	const t = translate( this.loc[0], this.loc[1], this.loc[2] );
-	this.worldMatrix = mult(t, mult(r, s));
-	gl.uniformMatrix4fv( gl.getUniformLocation(program, "worldMatrix"), gl.FALSE, flatten(this.worldMatrix));
+	this.worldMat = mult(t, mult(r, s));
+	gl.uniformMatrix4fv( gl.getUniformLocation(program, "worldMat"), gl.FALSE, flatten(this.worldMat));
 }
 
 Model.prototype.updateSkeletonBone = function(bone, frameId, trackIndex){
@@ -295,28 +295,28 @@ Model.prototype.render = function(gl, program, attributes, lerpBetweenTracks){
 
 	colladaParser_MakeVertexDataCopy(this.dae);	
 
-	gl.uniformMatrix4fv( gl.getUniformLocation(program, "modelMatrix"), gl.FALSE, flatten(this.modelMatrix));
+	gl.uniformMatrix4fv( gl.getUniformLocation(program, "modelMat"), gl.FALSE, flatten(this.modelMat));
 	this.sendWorldMatrix(gl, program);
 
-	gl.bindBuffer( gl.ARRAY_BUFFER, attributes.vertexPositions.id );
+	gl.bindBuffer( gl.ARRAY_BUFFER, attributes.vertexPositions );
 	gl.bufferData( gl.ARRAY_BUFFER, flatten(this.dae.vertexPositionDataRead), gl.STATIC_DRAW );
 	const vPos = gl.getAttribLocation( program, "vPos" );
 	gl.enableVertexAttribArray( vPos );
 	gl.vertexAttribPointer( vPos, 3, gl.FLOAT, false, 0, 0 );
 
-	gl.bindBuffer( gl.ARRAY_BUFFER, attributes.vertexTextures.id );
+	gl.bindBuffer( gl.ARRAY_BUFFER, attributes.vertexTextures );
 	gl.bufferData( gl.ARRAY_BUFFER, flatten(this.dae.vertexTextureDataRead), gl.STATIC_DRAW );	
 	const vTex = gl.getAttribLocation( program, "vTex" );
 	gl.enableVertexAttribArray( vTex );
 	gl.vertexAttribPointer( vTex, 2, gl.FLOAT, false, 0, 0 );
 
-	gl.bindBuffer( gl.ARRAY_BUFFER, attributes.boneIndices.id );
+	gl.bindBuffer( gl.ARRAY_BUFFER, attributes.boneIndices );
 	gl.bufferData( gl.ARRAY_BUFFER, flatten(this.dae.vertexBoneIndexDataRead), gl.STATIC_DRAW );	
 	const bIndices = gl.getAttribLocation( program, "bIndices" );
 	gl.enableVertexAttribArray( bIndices );
 	gl.vertexAttribPointer( bIndices, 4, gl.FLOAT, false, 0, 0 );
 
-	gl.bindBuffer( gl.ARRAY_BUFFER, attributes.boneWeights.id );
+	gl.bindBuffer( gl.ARRAY_BUFFER, attributes.boneWeights );
 	gl.bufferData( gl.ARRAY_BUFFER, flatten(this.dae.vertexBoneWeightDataRead), gl.STATIC_DRAW );	
 	const bWeights = gl.getAttribLocation( program, "bWeights" );
 	gl.enableVertexAttribArray( bWeights );
@@ -324,5 +324,5 @@ Model.prototype.render = function(gl, program, attributes, lerpBetweenTracks){
 
 	gl.bindTexture(gl.TEXTURE_2D, this.tex.texture);
 
-	gl.drawArrays( gl.TRIANGLES, this.dae.subMeshIndex[0], this.dae.subMeshIndex[1]); //Draw a single triangle (3 points)
+	gl.drawArrays( gl.TRIANGLES, this.dae.subMeshIndex[0], this.dae.subMeshIndex[1]);
 }

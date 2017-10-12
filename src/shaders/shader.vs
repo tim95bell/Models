@@ -3,8 +3,8 @@ attribute vec2 vTex;
 attribute vec4 bWeights;
 attribute vec4 bIndices;
 
-uniform mat4 modelMatrix;
-uniform mat4 worldMatrix;
+uniform mat4 modelMat;
+uniform mat4 worldMat;
 uniform mat4 viewMat;
 uniform mat4 projMat;
 
@@ -24,6 +24,7 @@ void main()
 {
 	varyingTex = vTex;
 
+    // determine final position based on current track
     vec4 frameOnePosition = vec4(0,0,0,0);
     vec4 frameTwoPosition = vec4(0,0,0,0);
     for(int i = 0; i < 4; ++i){
@@ -34,9 +35,9 @@ void main()
             boneMatricesNF[ int(bIndices[i]) ] *
             bWeights[i] * vPos;
     }
-
     vec4 finalPosition = mix(frameOnePosition, frameTwoPosition, lerpAmount);
 
+    // determine current position based on next track, if in transition
     if(lerpBetweenTracksAmount > 0.0){
         vec4 ntFrameOnePosition = vec4(0,0,0,0);
         vec4 ntFrameTwoPosition = vec4(0,0,0,0);
@@ -53,5 +54,6 @@ void main()
         finalPosition = mix(ntFinalPosition, finalPosition, lerpBetweenTracksAmount);
     }
 
-    gl_Position = projMat * viewMat * worldMatrix * modelMatrix * finalPosition;
+
+    gl_Position = projMat * viewMat * worldMat * modelMat * finalPosition;
 }

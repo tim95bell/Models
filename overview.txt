@@ -1,0 +1,43 @@
+ITC320 Assignment 2
+Tim Bell
+11589281
+
+I achieved all functionality except for picking.
+
+When you are not in piciking mode, clicking on the screen will allow 
+the mouse to move the camera around.
+
+The models are in rows, each row is higher up and futher back into the screen.
+This is so that all models can be seen from both the the front view,
+and from the birds eye view.
+
+
+init.js is
+This is the starting point. It creates an instance of App, 
+    hooks up the event listeners, and calls the run method on the App object.
+
+App.js
+This is the main class that runs everything, holds the state, and has the gameloop.
+
+Model.js
+This represents a model.
+Main functionality is update and draw.
+
+
+USER INTERFACE SPECIFICATION
+'-' => speed up playback rate
+'+' => slow down playback rate
+'x' => changes all models to play the next animation track
+'z' => changes all models to play the last animation track 
+'p' => pauses or unpauses playback of animations
+'c' => enables or disables picking (not finished)
+'1' => moves the camera to birds eye view
+'2' => moves the camera to the original front on view
+'w' => move forward
+'a' => move left
+'s' => move down
+'d' => move right
+'mouse click' => when not in picking mode, triggers mouse lock 
+    and allows mouse movement to move camera
+'mouse move' => when in mouse lock, moves camera
+'esc' => when in mouse lock, exits mouse lock
